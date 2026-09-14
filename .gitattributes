@@ -1,0 +1,2 @@
+# 竞赛原始数据体积较大（train.csv 约 170MB），使用 Git LFS 管理
+*.csv filter=lfs diff=lfs merge=lfs -text

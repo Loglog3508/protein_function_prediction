@@ -1,4 +1,15 @@
+# Python
 __pycache__/
 *.py[cod]
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# 提交产物
+submission.csv
+data/submission*.csv
+
+# System / editor
 .DS_Store
 Thumbs.db
+gha-creds-*.json
