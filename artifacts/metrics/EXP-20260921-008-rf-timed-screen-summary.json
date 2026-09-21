@@ -1,0 +1,55 @@
+{
+  "experiment_id": "EXP-20260921-008-rf-timed-screen",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "composition",
+    "dimensions": 21
+  },
+  "feature_resources": {
+    "sparse": false,
+    "vocabulary_size": null,
+    "train_shape": [
+      90920,
+      21
+    ],
+    "train_nnz": 1882470,
+    "train_bytes": 7637280,
+    "validation_shape": [
+      22876,
+      21
+    ],
+    "validation_nnz": 473218,
+    "validation_bytes": 1921584
+  },
+  "model": {
+    "type": "random_forest",
+    "n_estimators": 50,
+    "max_depth": 12,
+    "class_weight": "balanced",
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 50,
+  "macro_f1": 0.4421490106117959,
+  "true_positive_rate": 0.23811418080083932,
+  "predicted_positive_rate": 0.33796030774610947,
+  "zero_f1_labels": 0,
+  "feature_seconds": 14.050137799998993,
+  "fit_seconds": 114.85406160000639,
+  "inference_seconds": 1.5675879000045825,
+  "train_and_validation_seconds": 116.51369890000024,
+  "rss_megabytes": 532.95703125,
+  "scores_sha256": "b49864854d3279c92a288426372dbf47a90818fa2f8d53d7d17652973c70ea36",
+  "python": "3.13.2",
+  "git": {
+    "commit": "2957f7331e7c9ed9fdb00721ff0a1eb336476287",
+    "dirty": true
+  }
+}

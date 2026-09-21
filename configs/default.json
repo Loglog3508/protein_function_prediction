@@ -1,0 +1,26 @@
+{
+  "experiment_id": "default",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv",
+    "max_train_samples": null,
+    "max_test_samples": null,
+    "max_labels": null
+  },
+  "split": {
+    "validation_size": 0.2
+  },
+  "features": {
+    "type": "composition"
+  },
+  "model": {
+    "type": "random_forest",
+    "n_estimators": 50,
+    "max_depth": 12,
+    "class_weight": "balanced",
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "output_dir": "artifacts/runs/default"
+}

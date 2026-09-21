@@ -17,16 +17,16 @@
 
 | 文件 | 规模 | 列 | 说明 |
 | --- | --- | --- | --- |
-| `data/train.csv` | 44,000 | 502 | `protein_id` + `sequence` + 500 个标签，含标签 |
-| `data/test.csv` | 11,000 | 2 | `protein_id` + `sequence`，仅序列 |
-| `data/submit_template_v1.csv` | 11,000 | 501 | 提交模板 `protein_id` + `label_0` ~ `label_499` |
+| `data/train.csv` | 113,796 | 502 | `protein_id` + `sequence` + 500 个标签，含标签 |
+| `data/test.csv` | 28,450 | 2 | `protein_id` + `sequence`，仅序列 |
+| `data/submit_template_v1.csv` | 8 | 501 | 提交格式样例 `protein_id` + `label_0` ~ `label_499` |
 
 数据特征：
 
-- 标签数 500，标签密度约 3.4%（稀疏标签场景），训练集中每个标签均有正例
-- 每条序列平均 17 个标签（标准差约 8.5，范围 1 ~ 55）
-- 序列长度平均 300（标准差 116，最短 100，最长 500，中位数 301）
-- 仅含 20 种标准氨基酸，无缺失值
+- 标签数 500，标签密度约 5.08%（稀疏标签场景），训练集中每个标签均有正例
+- 每条序列平均 25.42 个标签（标准差约 24.62，范围 1 ~ 273，中位数 17）
+- 序列长度平均 553.19（标准差约 643.48，最短 3，最长 35,375，中位数 410）
+- 无缺失值；除 20 种标准氨基酸外还包含少量 `B`、`O`、`U`、`X`、`Z`
 - 训练集 : 测试集 ≈ 4 : 1
 
 ## 提交格式
@@ -36,7 +36,9 @@ CSV 文件，列为 `protein_id,label_0,...,label_499`：
 - `protein_id`：字符串，必须与测试集一致
 - `label_X`：整数 `0` 或 `1`
 
-可直接以 `data/submit_template_v1.csv` 为骨架填充，输出 `submission.csv`。
+`data/submit_template_v1.csv` 仅含测试集前 8 个 ID，用于展示列格式。正式
+提交必须以 `data/test.csv` 的全部 28,450 个 ID 为骨架，输出
+`submission.csv`。完整审计结果见 `docs/data_audit.md`。
 
 ## 基线方案
 
@@ -55,16 +57,30 @@ data/train.csv               训练集（含 500 个标签）
 data/test.csv                测试集（仅序列）
 data/submit_template_v1.csv  提交模板
 baseline-v2.ipynb            基线模型
+RULES.md                     赛题规则与评测细则
 ```
 
-## 运行方式
+## 可复现运行
 
-```bash
-pip install pandas numpy scikit-learn
-jupyter notebook baseline-v2.ipynb
+在 Windows PowerShell 中建立独立环境并运行测试：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple --timeout 120 -r requirements.txt
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-运行后生成 `submission.csv`，即可提交。
+执行真实数据冒烟流程（400 条训练记录、64 条测试记录、8 个训练标签，
+输出仍保持完整 500 个标签列）：
+
+```powershell
+.\.venv\Scripts\python.exe -m src.train --config configs/smoke.json
+.\.venv\Scripts\python.exe -m src.predict --config configs/smoke.json --run-dir artifacts/runs/smoke --output artifacts/submissions/smoke.csv
+.\.venv\Scripts\python.exe -m src.validate_submission --submission artifacts/submissions/smoke.csv --test data/test.csv --label-count 500 --max-test-samples 64
+```
+
+旧版 Notebook 仍可通过 `jupyter lab baseline-v2.ipynb` 查看。正式实验应使用
+带实验编号的配置和输出名称，不覆盖已有产物。
 
 ## 竞赛规则要点
 
@@ -72,3 +88,4 @@ jupyter notebook baseline-v2.ipynb
 - 每支队伍每个赛道每天最多提交 3 次
 - 排名前三的队伍须在竞赛结束后 48 小时内提交完整可运行代码
 - 队伍规模 1 ~ 3 人
+- 完整赛题规则、评分细则与 Macro F1 计算方式见 `RULES.md`

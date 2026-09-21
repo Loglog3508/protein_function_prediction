@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+.venv/
 
 # Jupyter / notebooks
 .ipynb_checkpoints/
@@ -8,6 +9,10 @@ __pycache__/
 # 提交产物
 submission.csv
 data/submission*.csv
+artifacts/runs/
+artifacts/submissions/*.csv
+*.joblib
+*.npz
 
 # System / editor
 .DS_Store
