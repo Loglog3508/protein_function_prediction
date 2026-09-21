@@ -55,6 +55,7 @@ data/train.csv               训练集（含 500 个标签）
 data/test.csv                测试集（仅序列）
 data/submit_template_v1.csv  提交模板
 baseline-v2.ipynb            基线模型
+RULES.md                     赛题规则与评测细则
 ```
 
 ## 运行方式
@@ -72,3 +73,4 @@ jupyter notebook baseline-v2.ipynb
 - 每支队伍每个赛道每天最多提交 3 次
 - 排名前三的队伍须在竞赛结束后 48 小时内提交完整可运行代码
 - 队伍规模 1 ~ 3 人
+- 完整赛题规则、评分细则与 Macro F1 计算方式见 `RULES.md`
