@@ -1,0 +1,61 @@
+{
+  "experiment_id": "EXP-20260922-012-kmer35-sgd-stage5-customweight-screen",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 30000,
+    "sublinear_tf": true
+  },
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 30000,
+    "train_shape": [
+      90920,
+      30000
+    ],
+    "train_nnz": 63405867,
+    "train_bytes": 507610620,
+    "validation_shape": [
+      22876,
+      30000
+    ],
+    "validation_nnz": 16116116,
+    "validation_bytes": 129020436
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": null,
+    "positive_class_weight": 2.0,
+    "alpha": 0.0001,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 50,
+  "macro_f1": 0.30850965987433104,
+  "true_positive_rate": 0.23811418080083932,
+  "predicted_positive_rate": 0.24409512152474208,
+  "zero_f1_labels": 0,
+  "feature_seconds": 123.97983709999971,
+  "fit_seconds": 66.7770625000021,
+  "inference_seconds": 1.1720663000005516,
+  "train_and_validation_seconds": 67.96861809999973,
+  "rss_megabytes": 1290.3671875,
+  "scores_sha256": "e21fb7b1956df65457c5cad728ddbf68c402753b62ef5dcb231892275f41785a",
+  "python": "3.12.14",
+  "git": {
+    "commit": "da971904bd3ac8e8a2dec6175fce6dfda45652cf",
+    "dirty": true
+  }
+}

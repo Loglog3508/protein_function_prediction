@@ -79,6 +79,14 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m src.validate_submission --submission artifacts/submissions/smoke.csv --test data/test.csv --label-count 500 --max-test-samples 64
 ```
 
+对已保存的验证连续分数执行阶段 5 阈值优化：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260922-010-kmer35-sgd-stage5-scores/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-010-stage5-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+```
+
+该命令扫描统一阈值、逐标签阈值与支持度收缩阈值，并使用双向交叉拟合报告未参与阈值选择样本上的 Macro F1。
+
 旧版 Notebook 仍可通过 `jupyter lab baseline-v2.ipynb` 查看。正式实验应使用
 带实验编号的配置和输出名称，不覆盖已有产物。
 

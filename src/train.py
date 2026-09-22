@@ -28,6 +28,15 @@ def _resolve(root: Path, path: str | Path) -> Path:
     return candidate if candidate.is_absolute() else root / candidate
 
 
+def _class_weight(model_config: dict):
+    if "positive_class_weight" in model_config:
+        positive_weight = float(model_config["positive_class_weight"])
+        if positive_weight <= 0:
+            raise ValueError("positive_class_weight must be positive")
+        return {0: 1.0, 1: positive_weight}
+    return model_config.get("class_weight")
+
+
 def fit_label_models(
     training_features,
     training_target: np.ndarray,
@@ -67,7 +76,7 @@ def fit_label_models(
             model = RandomForestClassifier(
                 n_estimators=model_config["n_estimators"],
                 max_depth=model_config.get("max_depth"),
-                class_weight=model_config.get("class_weight"),
+                class_weight=_class_weight(model_config),
                 n_jobs=model_config.get("n_jobs", 1),
                 random_state=seed,
             )
@@ -75,7 +84,7 @@ def fit_label_models(
             model = SGDClassifier(
                 loss="log_loss",
                 alpha=model_config.get("alpha", 0.0001),
-                class_weight=model_config.get("class_weight"),
+                class_weight=_class_weight(model_config),
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-3),
                 random_state=seed,
@@ -84,7 +93,7 @@ def fit_label_models(
         else:
             model = LogisticRegression(
                 C=model_config.get("C", 1.0),
-                class_weight=model_config.get("class_weight"),
+                class_weight=_class_weight(model_config),
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-4),
                 random_state=seed,

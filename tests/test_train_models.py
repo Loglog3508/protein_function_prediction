@@ -6,6 +6,26 @@ import src.train
 
 
 class LabelModelTests(unittest.TestCase):
+    def test_custom_positive_class_weight_is_supported(self):
+        features = np.array([[0.0], [0.2], [0.8], [1.0]], dtype=np.float32)
+        target = np.array([[0], [0], [1], [1]], dtype=np.uint8)
+        _, scores = src.train.fit_label_models(
+            features,
+            target,
+            features,
+            model_config={
+                "type": "sgd",
+                "class_weight": None,
+                "positive_class_weight": 2.0,
+                "max_iter": 20,
+                "tol": 0.001,
+                "n_jobs": 1,
+            },
+            seed=42,
+        )
+        self.assertEqual(scores.shape, (4, 1))
+        self.assertTrue(((scores >= 0) & (scores <= 1)).all())
+
     def test_random_forest_trains_rare_label_and_is_reproducible(self):
         fit_label_models = getattr(src.train, "fit_label_models", None)
         self.assertIsNotNone(fit_label_models, "label model trainer is missing")
