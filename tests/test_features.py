@@ -4,10 +4,23 @@ import numpy as np
 from scipy import sparse
 
 import src.features
-from src.features import AMINO_ACIDS, extract_composition_features
+from src.features import (
+    AMINO_ACIDS,
+    extract_composition_features,
+    extract_sequence_statistics,
+)
 
 
 class CompositionFeatureTests(unittest.TestCase):
+    def test_sequence_statistics_include_dipeptides_properties_and_length_bin(self):
+        features = extract_sequence_statistics(["ACD", ""])
+
+        self.assertEqual(features.shape, (2, 433))
+        self.assertAlmostEqual(float(features[0, 21:421].sum()), 1.0)
+        self.assertGreater(float(features[0, 421:427].sum()), 0.0)
+        self.assertEqual(float(features[0, -6:].sum()), 1.0)
+        self.assertEqual(float(features[1, -6:].sum()), 1.0)
+
     def test_composition_uses_total_length_and_ignores_unknown_dimensions(self):
         features = extract_composition_features(["ACAX"])
         a_index = AMINO_ACIDS.index("A")

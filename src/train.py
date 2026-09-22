@@ -19,7 +19,11 @@ from sklearn.model_selection import train_test_split
 
 from .config import load_config
 from .data import label_columns, load_training_data
-from .features import build_kmer_vectorizer, extract_composition_features
+from .features import (
+    build_kmer_vectorizer,
+    extract_composition_features,
+    extract_sequence_statistics,
+)
 from .metrics import macro_f1_skip_empty, per_label_classification_metrics
 
 
@@ -170,9 +174,14 @@ def _matrix_resources(matrix, prefix: str) -> dict:
 
 def _build_feature_matrices(training, validation, feature_config: dict):
     feature_type = feature_config["type"]
-    if feature_type == "composition":
-        training_features = extract_composition_features(training["sequence"])
-        validation_features = extract_composition_features(validation["sequence"])
+    if feature_type in {"composition", "sequence_statistics"}:
+        extractor = (
+            extract_composition_features
+            if feature_type == "composition"
+            else extract_sequence_statistics
+        )
+        training_features = extractor(training["sequence"])
+        validation_features = extractor(validation["sequence"])
         resources = {
             "sparse": False,
             "vocabulary_size": None,
@@ -180,7 +189,7 @@ def _build_feature_matrices(training, validation, feature_config: dict):
             **_matrix_resources(validation_features, "validation"),
         }
         return training_features, validation_features, resources, None
-    if feature_type != "kmer_tfidf":
+    if feature_type not in {"kmer_tfidf", "kmer_tfidf_statistics"}:
         raise ValueError(f"unsupported feature type: {feature_type}")
     vectorizer = build_kmer_vectorizer(
         k_min=feature_config["k_min"],
@@ -191,6 +200,23 @@ def _build_feature_matrices(training, validation, feature_config: dict):
     )
     training_features = vectorizer.fit_transform(training["sequence"])
     validation_features = vectorizer.transform(validation["sequence"])
+    if feature_type == "kmer_tfidf_statistics":
+        training_features = sparse.hstack(
+            [
+                training_features,
+                sparse.csr_matrix(extract_sequence_statistics(training["sequence"])),
+            ],
+            format="csr",
+            dtype=np.float32,
+        )
+        validation_features = sparse.hstack(
+            [
+                validation_features,
+                sparse.csr_matrix(extract_sequence_statistics(validation["sequence"])),
+            ],
+            format="csr",
+            dtype=np.float32,
+        )
     if not sparse.issparse(training_features) or not sparse.issparse(
         validation_features
     ):
@@ -198,6 +224,11 @@ def _build_feature_matrices(training, validation, feature_config: dict):
     resources = {
         "sparse": True,
         "vocabulary_size": len(vectorizer.vocabulary_),
+        "statistics_dimensions": (
+            training_features.shape[1] - len(vectorizer.vocabulary_)
+            if feature_type == "kmer_tfidf_statistics"
+            else 0
+        ),
         **_matrix_resources(training_features, "train"),
         **_matrix_resources(validation_features, "validation"),
     }
@@ -258,9 +289,23 @@ def run_evaluation(
     if config["data"].get("test_path"):
         test = pd.read_csv(_resolve(root, config["data"]["test_path"]))
         if vectorizer is None:
-            test_features = extract_composition_features(test["sequence"])
+            extractor = (
+                extract_sequence_statistics
+                if config["features"]["type"] == "sequence_statistics"
+                else extract_composition_features
+            )
+            test_features = extractor(test["sequence"])
         else:
             test_features = vectorizer.transform(test["sequence"])
+            if config["features"]["type"] == "kmer_tfidf_statistics":
+                test_features = sparse.hstack(
+                    [
+                        test_features,
+                        sparse.csr_matrix(extract_sequence_statistics(test["sequence"])),
+                    ],
+                    format="csr",
+                    dtype=np.float32,
+                )
             if not sparse.issparse(test_features):
                 raise RuntimeError("k-mer test features must remain sparse")
         feature_resources.update(_matrix_resources(test_features, "test"))

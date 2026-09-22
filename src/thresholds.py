@@ -161,6 +161,76 @@ def samplewise_label_count_summary(y_true: np.ndarray, y_pred: np.ndarray) -> di
     return summary
 
 
+def crossfit_shrunk_threshold_score(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    seed: int = 42,
+    shrinkage: float = 25.0,
+    candidates: np.ndarray | None = None,
+) -> dict:
+    """Evaluate shrunk per-label thresholds with two-fold cross-fitting."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    rng = np.random.default_rng(seed)
+    first, second = np.array_split(rng.permutation(len(y_true)), 2)
+    predictions = np.zeros_like(y_true, dtype=np.uint8)
+    fold_thresholds = []
+    for selection_index, evaluation_index in ((first, second), (second, first)):
+        global_threshold, _ = select_global_threshold(
+            y_true[selection_index], scores[selection_index], candidates
+        )
+        label_thresholds, _ = select_label_thresholds(
+            y_true[selection_index],
+            scores[selection_index],
+            global_threshold=global_threshold,
+            candidates=candidates,
+        )
+        thresholds = shrink_label_thresholds(
+            label_thresholds,
+            y_true[selection_index].sum(axis=0),
+            global_threshold=global_threshold,
+            shrinkage=shrinkage,
+        )
+        fold_thresholds.append(thresholds)
+        predictions[evaluation_index] = threshold_predictions(
+            scores[evaluation_index], thresholds
+        )
+    return {
+        "macro_f1": macro_f1_skip_empty(y_true, predictions),
+        "predicted_positive_rate": float(predictions.mean()),
+        "fold_thresholds": fold_thresholds,
+    }
+
+
+def fit_shrunk_thresholds(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    shrinkage: float = 25.0,
+    candidates: np.ndarray | None = None,
+) -> tuple[np.ndarray, float]:
+    """Fit final shrunk per-label thresholds on all supplied rows."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    global_threshold, _ = select_global_threshold(y_true, scores, candidates)
+    label_thresholds, _ = select_label_thresholds(
+        y_true,
+        scores,
+        global_threshold=global_threshold,
+        candidates=candidates,
+    )
+    return (
+        shrink_label_thresholds(
+            label_thresholds,
+            y_true.sum(axis=0),
+            global_threshold=global_threshold,
+            shrinkage=shrinkage,
+        ),
+        global_threshold,
+    )
+
+
 def _resolve(root: Path, path: str | Path) -> Path:
     candidate = Path(path)
     return candidate if candidate.is_absolute() else root / candidate
@@ -175,6 +245,7 @@ def run_threshold_optimization(
     seed: int = 42,
     holdout_fraction: float = 0.5,
     shrinkage: float = 25.0,
+    max_labels: int | None = None,
 ) -> Path:
     """Optimize thresholds from saved validation scores and persist diagnostics."""
     root = Path(project_root) if project_root is not None else Path.cwd()
@@ -182,6 +253,11 @@ def run_threshold_optimization(
         scores = saved["validation_scores"]
         validation_ids = saved["validation_ids"].astype(str)
         labels = saved["label_columns"].astype(str).tolist()
+    if max_labels is not None:
+        if max_labels <= 0:
+            raise ValueError("max_labels must be positive")
+        labels = labels[:max_labels]
+        scores = scores[:, :max_labels]
     train = pd.read_csv(_resolve(root, train_path), usecols=["protein_id", *labels])
     indexed = train.set_index("protein_id", drop=False)
     if not pd.Index(validation_ids).isin(indexed.index).all():
@@ -348,6 +424,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--holdout-fraction", type=float, default=0.5)
     parser.add_argument("--shrinkage", type=float, default=25.0)
+    parser.add_argument("--max-labels", type=int)
     args = parser.parse_args()
     print(
         run_threshold_optimization(
@@ -357,6 +434,7 @@ def main() -> None:
             seed=args.seed,
             holdout_fraction=args.holdout_fraction,
             shrinkage=args.shrinkage,
+            max_labels=args.max_labels,
         )
     )
 

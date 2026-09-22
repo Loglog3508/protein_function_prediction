@@ -156,6 +156,29 @@ class EvaluationRunnerTests(unittest.TestCase):
                 self.assertEqual(saved["test_scores"].shape, (2, 2))
                 self.assertEqual(saved["test_ids"].tolist(), ["T0", "T1"])
 
+    def test_kmer_statistics_features_are_appended(self):
+        training = pd.DataFrame({"sequence": ["ACDE", "AAAA", "CCCC"]})
+        validation = pd.DataFrame({"sequence": ["ACAC"]})
+        build_matrices = getattr(src.train, "_build_feature_matrices")
+
+        train_matrix, validation_matrix, resources, _ = build_matrices(
+            training,
+            validation,
+            {
+                "type": "kmer_tfidf_statistics",
+                "k_min": 2,
+                "k_max": 2,
+                "min_df": 1,
+                "max_features": 10,
+                "sublinear_tf": True,
+            },
+        )
+
+        self.assertTrue(resources["sparse"])
+        self.assertEqual(resources["statistics_dimensions"], 433)
+        self.assertEqual(train_matrix.shape[1], resources["vocabulary_size"] + 433)
+        self.assertEqual(validation_matrix.shape[1], train_matrix.shape[1])
+
 
 if __name__ == "__main__":
     unittest.main()

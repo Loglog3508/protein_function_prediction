@@ -11,6 +11,8 @@ submission.csv
 data/submission*.csv
 artifacts/runs/
 artifacts/submissions/*.csv
+artifacts/docx-inspect*/
+artifacts/docx-inspect*.zip
 *.joblib
 *.npz
 

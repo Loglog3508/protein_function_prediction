@@ -1,0 +1,48 @@
+{
+  "primary_scores": "artifacts\\runs\\EXP-20260922-017-kmer35-sgd-low-alpha-full\\scores.npz",
+  "secondary_scores": "artifacts\\runs\\EXP-20260922-016-cnn-gpu-full\\scores.npz",
+  "best_candidate": "primary",
+  "best_crossfit_macro_f1": 0.31751631035804023,
+  "leaderboard": [
+    {
+      "candidate": "primary",
+      "crossfit_macro_f1": 0.31751631035804023,
+      "predicted_positive_rate": 0.07375091799265605
+    },
+    {
+      "candidate": "label_association_0.02",
+      "crossfit_macro_f1": 0.31680645121558815,
+      "predicted_positive_rate": 0.07395086553593286
+    },
+    {
+      "candidate": "fusion_primary_0.95",
+      "crossfit_macro_f1": 0.31624530863072925,
+      "predicted_positive_rate": 0.0740359328553943
+    },
+    {
+      "candidate": "label_association_0.05",
+      "crossfit_macro_f1": 0.31607513844569407,
+      "predicted_positive_rate": 0.0736797517048435
+    },
+    {
+      "candidate": "label_association_0.10",
+      "crossfit_macro_f1": 0.3148462854755494,
+      "predicted_positive_rate": 0.07383817100891764
+    },
+    {
+      "candidate": "fusion_primary_0.90",
+      "crossfit_macro_f1": 0.31474817299248975,
+      "predicted_positive_rate": 0.07454957160342718
+    },
+    {
+      "candidate": "fusion_primary_0.80",
+      "crossfit_macro_f1": 0.3110384143391659,
+      "predicted_positive_rate": 0.07621210001748557
+    }
+  ],
+  "outputs": {
+    "leaderboard": "artifacts\\metrics\\EXP-20260922-018-stage6-ensemble-leaderboard.csv",
+    "scores": "artifacts\\metrics\\EXP-20260922-018-stage6-ensemble-scores.npz",
+    "thresholds": "artifacts\\metrics\\EXP-20260922-018-stage6-ensemble-thresholds.json"
+  }
+}

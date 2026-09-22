@@ -1,0 +1,31 @@
+{
+  "experiment_id": "EXP-20260922-016-cnn-gpu-full",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv",
+    "max_labels": null
+  },
+  "split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1024,
+    "embedding_dim": 32,
+    "channels": 64,
+    "kernels": [3, 7, 15],
+    "dropout": 0.25
+  },
+  "training": {
+    "epochs": 3,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "weight_decay": 0.01,
+    "max_positive_weight": 8.0,
+    "amp": true,
+    "require_cuda": true
+  },
+  "output_dir": "artifacts/runs/EXP-20260922-016-cnn-gpu-full",
+  "metrics_prefix": "artifacts/metrics/EXP-20260922-016-cnn-gpu-full"
+}

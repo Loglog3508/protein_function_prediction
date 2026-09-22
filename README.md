@@ -87,6 +87,44 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EX
 
 该命令扫描统一阈值、逐标签阈值与支持度收缩阈值，并使用双向交叉拟合报告未参与阈值选择样本上的 Macro F1。
 
+## 阶段 6：模型选择
+
+运行低正则 3-5-mer 全量验证模型：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.train --config configs/kmer35_sgd_low_alpha_full.json --evaluate
+E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260922-017-kmer35-sgd-low-alpha-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+```
+
+运行仅使用竞赛数据、从零训练的 CUDA CNN：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.train_gpu --config configs/cnn_gpu_stage6.json
+```
+
+当前主模型为低正则 3-5-mer SGD + 逐标签收缩阈值，500 标签双向交叉拟合 Macro F1 为 `0.317516`。实验排行榜见 `artifacts/metrics/leaderboard.csv`。
+
+## 阶段 7：正式提交
+
+在全部 113,796 条训练数据上重训并生成完整提交：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260922-019.csv --metadata artifacts/metrics/EXP-20260922-019-final-metadata.json
+```
+
+正式提交必须通过 28,450 行、501 列、ID 顺序、整数二值和空值校验。推荐提交顺序及平台结果回填表见 `docs/submission_plan.md`。
+
+## 阶段 8：报告交付
+
+重新生成排行榜、图表和 Word 报告：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.reporting
+E:\CUDA\envs\protein-gpu\python.exe scripts/build_final_report.py
+```
+
+最终报告为 `reports/蛋白质功能预测分析报告.docx`，正文源文件为 `reports/final_report.md`。报告遵循官方模板审计出的八部分结构，并包含 22 篇参考文献。
+
 旧版 Notebook 仍可通过 `jupyter lab baseline-v2.ipynb` 查看。正式实验应使用
 带实验编号的配置和输出名称，不覆盖已有产物。
 

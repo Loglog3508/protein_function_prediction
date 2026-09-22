@@ -1,0 +1,60 @@
+{
+  "experiment_id": "EXP-20260922-016-cnn-gpu-full",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1024,
+    "embedding_dim": 32,
+    "channels": 64,
+    "kernels": [
+      3,
+      7,
+      15
+    ],
+    "dropout": 0.25
+  },
+  "training": {
+    "epochs": 3,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "weight_decay": 0.01,
+    "max_positive_weight": 8.0,
+    "amp": true,
+    "require_cuda": true
+  },
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 500,
+  "macro_f1": 0.09781400871935608,
+  "true_positive_rate": 0.050682374541003675,
+  "predicted_positive_rate": 0.023657370169610073,
+  "encoding_seconds": 0.4798409999998512,
+  "train_and_validation_seconds": 32.686854799999765,
+  "history": [
+    {
+      "epoch": 1,
+      "training_loss": 0.4782505332872934,
+      "validation_macro_f1_at_0.5": 0.049143421879559196,
+      "validation_predicted_positive_rate": 0.017449554117852772
+    },
+    {
+      "epoch": 2,
+      "training_loss": 0.4483880553301137,
+      "validation_macro_f1_at_0.5": 0.08461723191696272,
+      "validation_predicted_positive_rate": 0.023364923937751355
+    },
+    {
+      "epoch": 3,
+      "training_loss": 0.43722511359473654,
+      "validation_macro_f1_at_0.5": 0.09781400871935608,
+      "validation_predicted_positive_rate": 0.023657370169610073
+    }
+  ],
+  "scores_sha256": "536fdb77d029984a7312a59c0a2f7eb82dd855838accb4faa8709cf4ed7d3057"
+}
