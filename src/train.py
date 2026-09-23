@@ -88,6 +88,7 @@ def fit_label_models(
             model = SGDClassifier(
                 loss="log_loss",
                 alpha=model_config.get("alpha", 0.0001),
+                average=model_config.get("average", False),
                 class_weight=_class_weight(model_config),
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-3),

@@ -102,7 +102,19 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EX
 E:\CUDA\envs\protein-gpu\python.exe -m src.train_gpu --config configs/cnn_gpu_stage6.json
 ```
 
-当前主模型为低正则 3-5-mer SGD + 逐标签收缩阈值，500 标签双向交叉拟合 Macro F1 为 `0.317516`。实验排行榜见 `artifacts/metrics/leaderboard.csv`。
+阶段 6 主模型为低正则 3-5-mer SGD + 逐标签收缩阈值，500 标签双向交叉拟合 Macro F1 为 `0.317516`。
+
+第一次提分迭代将 TF-IDF 词表扩大到 120,000，并把 SGD 正则系数调整为 `5e-6`。完整 500 标签双向交叉拟合 Macro F1 提升至 `0.379956`；五个阈值二分 seed 的 0.01 细网格均值为 `0.380168`，标准差为 `0.000541`。实验记录见 `reports/experiments/EXP-20260923-iteration1.md`。
+
+复现第一次迭代的完整验证和提交：
+
+```powershell
+E:\CUDA\envs\protein-gpu\python.exe -m src.train --config configs/iteration1_kmer35_sgd_full.json --evaluate
+E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260923-025-iteration1-kmer35-sgd-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/iteration1_final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260923-026.csv --metadata artifacts/metrics/EXP-20260923-026-iteration1-final-metadata.json
+```
+
+完整实验排行榜见 `artifacts/metrics/leaderboard.csv`。
 
 ## 阶段 7：正式提交
 

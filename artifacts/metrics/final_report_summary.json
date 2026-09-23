@@ -2,16 +2,17 @@
   "best_model": {
     "rank": "1",
     "rank_basis": "crossfit_or_fixed_validation",
-    "experiment": "Low-alpha 3-5-mer SGD + shrunk thresholds",
-    "experiment_id": "EXP-20260922-017",
-    "macro_f1": 0.31751631035804023,
+    "experiment": "Iteration 1 120k 3-5-mer SGD + shrunk thresholds",
+    "experiment_id": "EXP-20260923-025",
+    "macro_f1": 0.3799564929582331,
     "label_count": 500,
-    "prediction_positive_rate": 0.07375091799265605,
+    "prediction_positive_rate": 0.05893643993705193,
     "role": "primary"
   },
   "ensemble_best_candidate": "primary",
   "ensemble_best_crossfit_macro_f1": 0.31751631035804023,
   "fixed_low_alpha_macro_f1": 0.24246940014532248,
+  "fixed_iteration1_macro_f1": 0.36288221786610575,
   "outputs": {
     "leaderboard": "artifacts\\metrics\\leaderboard.csv",
     "figures": [

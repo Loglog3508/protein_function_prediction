@@ -1,0 +1,112 @@
+{
+  "scores_path": "artifacts/runs/EXP-20260922-020-kmer35-sgd-low-alpha-rerun/scores.npz",
+  "train_path": "data/train.csv",
+  "validation_rows": 22876,
+  "calibration_rows": 11438,
+  "holdout_rows": 11438,
+  "seed": 42,
+  "holdout_fraction": 0.5,
+  "strategies": [
+    {
+      "strategy": "fixed_0.5",
+      "calibration_macro_f1": 0.24122255900284637,
+      "holdout_macro_f1": 0.24356164301038,
+      "calibration_predicted_positive_rate": 0.1375906627032698,
+      "holdout_predicted_positive_rate": 0.1375908375590138
+    },
+    {
+      "strategy": "global_selected",
+      "calibration_macro_f1": 0.28806942587600337,
+      "holdout_macro_f1": 0.29030322668234215,
+      "calibration_predicted_positive_rate": 0.043467913970973944,
+      "holdout_predicted_positive_rate": 0.043266480153873056
+    },
+    {
+      "strategy": "per_label_selected",
+      "calibration_macro_f1": 0.32266543070150894,
+      "holdout_macro_f1": 0.31756394551511,
+      "calibration_predicted_positive_rate": 0.07417747858017136,
+      "holdout_predicted_positive_rate": 0.0738938625633852
+    },
+    {
+      "strategy": "per_label_shrunk",
+      "calibration_macro_f1": 0.322192255464803,
+      "holdout_macro_f1": 0.3181932087436651,
+      "calibration_predicted_positive_rate": 0.07413254065396048,
+      "holdout_predicted_positive_rate": 0.07384280468613394
+    }
+  ],
+  "crossfit_per_label_shrunk": {
+    "macro_f1": 0.31751631035804023,
+    "predicted_positive_rate": 0.07375091799265605
+  },
+  "final_full_validation_fit": {
+    "global_threshold": 0.6500000357627869,
+    "macro_f1": 0.32172056126390053,
+    "predicted_positive_rate": 0.07316270326980241
+  },
+  "true_positive_rate": 0.050682374541003675,
+  "samplewise_label_counts": {
+    "fixed_0.5": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 68.7954187795069,
+        "median": 55.0,
+        "p90": 142.0,
+        "max": 311
+      }
+    },
+    "global_selected": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 21.633240076936527,
+        "median": 11.0,
+        "p90": 58.0,
+        "max": 232
+      }
+    },
+    "per_label_selected": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 36.946931281692606,
+        "median": 29.0,
+        "p90": 72.0,
+        "max": 225
+      }
+    },
+    "per_label_shrunk": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 36.92140234306697,
+        "median": 29.0,
+        "p90": 73.0,
+        "max": 227
+      }
+    }
+  },
+  "outputs": {
+    "thresholds": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-020-kmer35-sgd-low-alpha-rerun-thresholds-thresholds.json",
+    "global_scan": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-020-kmer35-sgd-low-alpha-rerun-thresholds-global-scan.csv",
+    "per_label": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-020-kmer35-sgd-low-alpha-rerun-thresholds-per-label.csv"
+  }
+}

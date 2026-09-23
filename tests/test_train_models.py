@@ -26,6 +26,27 @@ class LabelModelTests(unittest.TestCase):
         self.assertEqual(scores.shape, (4, 1))
         self.assertTrue(((scores >= 0) & (scores <= 1)).all())
 
+    def test_sgd_parameter_averaging_is_supported(self):
+        features = np.array([[0.0], [0.2], [0.8], [1.0]], dtype=np.float32)
+        target = np.array([[0], [0], [1], [1]], dtype=np.uint8)
+
+        models, _ = src.train.fit_label_models(
+            features,
+            target,
+            features,
+            model_config={
+                "type": "sgd",
+                "class_weight": "balanced",
+                "average": True,
+                "max_iter": 20,
+                "tol": 0.001,
+                "n_jobs": 1,
+            },
+            seed=42,
+        )
+
+        self.assertTrue(models[0].average)
+
     def test_random_forest_trains_rare_label_and_is_reproducible(self):
         fit_label_models = getattr(src.train, "fit_label_models", None)
         self.assertIsNotNone(fit_label_models, "label model trainer is missing")

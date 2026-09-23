@@ -29,6 +29,9 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
     low_alpha = _read_json(
         metrics / "EXP-20260922-017-kmer35-sgd-low-alpha-thresholds-summary.json"
     )
+    iteration1 = _read_json(
+        metrics / "EXP-20260923-025-iteration1-kmer35-sgd-thresholds-summary.json"
+    )
     cnn = _read_json(metrics / "EXP-20260922-016-cnn-gpu-thresholds-summary.json")
     ensemble = _read_json(metrics / "EXP-20260922-018-stage6-ensemble-summary.json")
     rf = _read_json(metrics / "EXP-20260921-002-rf-baseline-summary.json")
@@ -38,9 +41,23 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
     fixed_low_alpha = _read_json(
         metrics / "EXP-20260922-017-kmer35-sgd-low-alpha-full-summary.json"
     )
+    fixed_iteration1 = _read_json(
+        metrics / "EXP-20260923-025-iteration1-kmer35-sgd-full-summary.json"
+    )
 
     leaderboard = pd.DataFrame(
         [
+            {
+                "rank_basis": "crossfit_or_fixed_validation",
+                "experiment": "Iteration 1 120k 3-5-mer SGD + shrunk thresholds",
+                "experiment_id": "EXP-20260923-025",
+                "macro_f1": iteration1["crossfit_per_label_shrunk"]["macro_f1"],
+                "label_count": 500,
+                "prediction_positive_rate": iteration1[
+                    "crossfit_per_label_shrunk"
+                ]["predicted_positive_rate"],
+                "role": "primary",
+            },
             {
                 "rank_basis": "crossfit_or_fixed_validation",
                 "experiment": "Low-alpha 3-5-mer SGD + shrunk thresholds",
@@ -50,7 +67,7 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
                 "prediction_positive_rate": low_alpha["crossfit_per_label_shrunk"][
                     "predicted_positive_rate"
                 ],
-                "role": "primary",
+                "role": "backup",
             },
             {
                 "rank_basis": "crossfit_or_fixed_validation",
@@ -114,12 +131,12 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
     plt.gca().invert_yaxis()
     plt.xlabel("Macro F1")
     plt.title("Comparable 500-label validation results")
-    plt.xlim(0, 0.35)
+    plt.xlim(0, 0.42)
     for bar, value in zip(bars, comparable["macro_f1"], strict=True):
         plt.text(value + 0.004, bar.get_y() + bar.get_height() / 2, f"{value:.3f}", va="center")
     _save_figure(figures / "model_comparison.png")
 
-    threshold_rows = pd.DataFrame(low_alpha["strategies"])
+    threshold_rows = pd.DataFrame(iteration1["strategies"])
     plt.figure(figsize=(7.4, 4.3))
     colors = ["#747474", "#3D78A5", "#B85C38", "#187A5B"]
     bars = plt.bar(
@@ -129,12 +146,12 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
     )
     plt.ylabel("Holdout Macro F1")
     plt.title("Threshold strategy comparison")
-    plt.ylim(0.2, 0.34)
+    plt.ylim(0.2, 0.41)
     for bar, value in zip(bars, threshold_rows["holdout_macro_f1"], strict=True):
         plt.text(bar.get_x() + bar.get_width() / 2, value + 0.003, f"{value:.3f}", ha="center")
     _save_figure(figures / "threshold_comparison.png")
 
-    counts = low_alpha["samplewise_label_counts"]
+    counts = iteration1["samplewise_label_counts"]
     names = ["True", "Fixed 0.5", "Global", "Shrunk"]
     means = [
         counts["fixed_0.5"]["true"]["mean"],
@@ -151,7 +168,7 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
     _save_figure(figures / "label_count_diagnostic.png")
 
     per_label = pd.read_csv(
-        metrics / "EXP-20260922-017-kmer35-sgd-low-alpha-thresholds-per-label.csv"
+        metrics / "EXP-20260923-025-iteration1-kmer35-sgd-thresholds-per-label.csv"
     )
     plt.figure(figsize=(7.2, 4.5))
     plt.scatter(
@@ -173,6 +190,7 @@ def build_final_artifacts(project_root: str | Path = ".") -> dict:
         "ensemble_best_candidate": ensemble["best_candidate"],
         "ensemble_best_crossfit_macro_f1": ensemble["best_crossfit_macro_f1"],
         "fixed_low_alpha_macro_f1": fixed_low_alpha["macro_f1"],
+        "fixed_iteration1_macro_f1": fixed_iteration1["macro_f1"],
         "outputs": {
             "leaderboard": str(leaderboard_path),
             "figures": [
