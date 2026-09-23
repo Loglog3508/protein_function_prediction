@@ -1,0 +1,112 @@
+{
+  "scores_path": "artifacts\\runs\\EXP-20260922-013-sequence-statistics-sgd-screen\\scores.npz",
+  "train_path": "data\\train.csv",
+  "validation_rows": 22876,
+  "calibration_rows": 11438,
+  "holdout_rows": 11438,
+  "seed": 42,
+  "holdout_fraction": 0.5,
+  "strategies": [
+    {
+      "strategy": "fixed_0.5",
+      "calibration_macro_f1": 0.36753825796811973,
+      "holdout_macro_f1": 0.3748218435013799,
+      "calibration_predicted_positive_rate": 0.5161986361251967,
+      "holdout_predicted_positive_rate": 0.5158646616541354
+    },
+    {
+      "strategy": "global_selected",
+      "calibration_macro_f1": 0.3817798526283196,
+      "holdout_macro_f1": 0.38763255842855043,
+      "calibration_predicted_positive_rate": 0.6692079034796293,
+      "holdout_predicted_positive_rate": 0.6686588564434341
+    },
+    {
+      "strategy": "per_label_selected",
+      "calibration_macro_f1": 0.40882198203559617,
+      "holdout_macro_f1": 0.4139165199946451,
+      "calibration_predicted_positive_rate": 0.5247053680713412,
+      "holdout_predicted_positive_rate": 0.5232068543451652
+    },
+    {
+      "strategy": "per_label_shrunk",
+      "calibration_macro_f1": 0.4086148980933983,
+      "holdout_macro_f1": 0.41404441200898195,
+      "calibration_predicted_positive_rate": 0.5272984787550271,
+      "holdout_predicted_positive_rate": 0.5257335198461269
+    }
+  ],
+  "crossfit_per_label_shrunk": {
+    "macro_f1": 0.411159030747796,
+    "predicted_positive_rate": 0.5228317887742613
+  },
+  "final_full_validation_fit": {
+    "global_threshold": 0.45000001788139343,
+    "macro_f1": 0.41134189757204304,
+    "predicted_positive_rate": 0.5239858366847351
+  },
+  "true_positive_rate": 0.23811418080083932,
+  "samplewise_label_counts": {
+    "fixed_0.5": {
+      "true": {
+        "mean": 12.00498338870432,
+        "median": 10.0,
+        "p90": 24.0,
+        "max": 49
+      },
+      "predicted": {
+        "mean": 25.793233082706767,
+        "median": 27.0,
+        "p90": 37.0,
+        "max": 47
+      }
+    },
+    "global_selected": {
+      "true": {
+        "mean": 12.00498338870432,
+        "median": 10.0,
+        "p90": 24.0,
+        "max": 49
+      },
+      "predicted": {
+        "mean": 33.43294282217171,
+        "median": 35.0,
+        "p90": 43.0,
+        "max": 49
+      }
+    },
+    "per_label_selected": {
+      "true": {
+        "mean": 12.00498338870432,
+        "median": 10.0,
+        "p90": 24.0,
+        "max": 49
+      },
+      "predicted": {
+        "mean": 26.160342717258263,
+        "median": 25.0,
+        "p90": 39.0,
+        "max": 47
+      }
+    },
+    "per_label_shrunk": {
+      "true": {
+        "mean": 12.00498338870432,
+        "median": 10.0,
+        "p90": 24.0,
+        "max": 49
+      },
+      "predicted": {
+        "mean": 26.286675992306346,
+        "median": 25.0,
+        "p90": 39.0,
+        "max": 47
+      }
+    }
+  },
+  "outputs": {
+    "thresholds": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-013-sequence-statistics-thresholds-thresholds.json",
+    "global_scan": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-013-sequence-statistics-thresholds-global-scan.csv",
+    "per_label": "C:\\Users\\Administrator\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260922-013-sequence-statistics-thresholds-per-label.csv"
+  }
+}

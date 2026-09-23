@@ -1,0 +1,5 @@
+# Reference lock for the original CUDA 13 experiment environment.
+# Install a platform-compatible PyTorch build instead when CUDA 13 wheels are unsuitable.
+-r requirements.txt
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.14.0+cu130

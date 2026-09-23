@@ -1,0 +1,12 @@
+{
+  "seed": 42,
+  "validation_size_requested": 0.2,
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "validation_fraction_actual": 0.20102639811592674,
+  "labels_with_validation_positives": 500,
+  "label_count": 500,
+  "max_absolute_rate_shift": 0.0032601339948533647,
+  "mean_absolute_rate_shift": 0.00024514163447410096,
+  "shared_sequences_between_splits": 0
+}

@@ -1,0 +1,26 @@
+{
+  "experiment_id": "EXP-20260921-002-rf-baseline",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "max_labels": null
+  },
+  "split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "composition",
+    "dimensions": 21
+  },
+  "model": {
+    "type": "random_forest",
+    "n_estimators": 50,
+    "max_depth": 12,
+    "class_weight": "balanced",
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "output_dir": "artifacts/runs/EXP-20260921-002-rf-baseline",
+  "metrics_prefix": "artifacts/metrics/EXP-20260921-002-rf-baseline"
+}

@@ -1,0 +1,55 @@
+{
+  "experiment_id": "EXP-20260922-013-sequence-statistics-sgd-screen",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "sequence_statistics"
+  },
+  "feature_resources": {
+    "sparse": false,
+    "vocabulary_size": null,
+    "train_shape": [
+      90920,
+      433
+    ],
+    "train_nnz": 21892454,
+    "train_bytes": 157473440,
+    "validation_shape": [
+      22876,
+      433
+    ],
+    "validation_nnz": 5517321,
+    "validation_bytes": 39621232
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.0001,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 50,
+  "macro_f1": 0.3712107969714241,
+  "true_positive_rate": 0.23811418080083932,
+  "predicted_positive_rate": 0.516031648889666,
+  "zero_f1_labels": 0,
+  "feature_seconds": 50.502651700000115,
+  "fit_seconds": 144.18376530000023,
+  "inference_seconds": 0.16494790000001558,
+  "train_and_validation_seconds": 144.3702178000001,
+  "rss_megabytes": 681.3203125,
+  "scores_sha256": "92c093ffff906aa2c802009cf5e6ddd8c1444cd55e1574aaf69ca93673361d26",
+  "python": "3.12.14",
+  "git": {
+    "commit": "e80b4270e7806449f62bbc23488f36181a19bb04",
+    "dirty": true
+  }
+}

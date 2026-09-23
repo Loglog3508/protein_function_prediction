@@ -1,0 +1,25 @@
+{
+  "experiment_id": "EXP-20260923-026-iteration1-final-kmer35-sgd",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv"
+  },
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.000005,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  }
+}

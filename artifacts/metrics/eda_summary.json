@@ -1,0 +1,45 @@
+{
+  "rows": {
+    "train": 113796,
+    "test": 28450
+  },
+  "label_count": 500,
+  "label_density": 0.05084828992231713,
+  "labels_per_sequence": {
+    "min": 1.0,
+    "q1": 9.0,
+    "median": 17.0,
+    "mean": 25.424144961158564,
+    "q3": 35.0,
+    "max": 273.0,
+    "std": 24.619158373086577
+  },
+  "sequence_length": {
+    "train": {
+      "min": 3.0,
+      "q1": 247.0,
+      "median": 410.0,
+      "mean": 553.1884952019403,
+      "q3": 652.0,
+      "max": 35375.0,
+      "std": 643.4839546026625
+    },
+    "test": {
+      "min": 6.0,
+      "q1": 248.0,
+      "median": 414.0,
+      "mean": 555.4293497363797,
+      "q3": 660.0,
+      "max": 35213.0,
+      "std": 634.6677951914598
+    }
+  },
+  "leakage": {
+    "train_duplicate_id_rows": 0,
+    "test_duplicate_id_rows": 0,
+    "train_duplicate_sequence_rows": 5816,
+    "test_duplicate_sequence_rows": 237,
+    "train_test_shared_ids": 0,
+    "train_test_shared_unique_sequences": 0
+  }
+}

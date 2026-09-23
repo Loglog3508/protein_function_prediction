@@ -1,0 +1,33 @@
+{
+  "experiment_id": "EXP-20260923-025-iteration1-kmer35-sgd-full",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv",
+    "max_labels": null
+  },
+  "split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.000005,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "output_dir": "artifacts/runs/EXP-20260923-025-iteration1-kmer35-sgd-full",
+  "metrics_prefix": "artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-full"
+}

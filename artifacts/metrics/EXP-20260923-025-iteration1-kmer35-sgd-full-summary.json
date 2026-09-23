@@ -1,0 +1,68 @@
+{
+  "experiment_id": "EXP-20260923-025-iteration1-kmer35-sgd-full",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 120000,
+    "statistics_dimensions": 0,
+    "train_shape": [
+      90920,
+      120000
+    ],
+    "train_nnz": 89128064,
+    "train_bytes": 713388196,
+    "validation_shape": [
+      22876,
+      120000
+    ],
+    "validation_nnz": 22637443,
+    "validation_bytes": 181191052,
+    "test_shape": [
+      28450,
+      120000
+    ],
+    "test_nnz": 28079607,
+    "test_bytes": 224750660
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 5e-06,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "threshold": 0.5,
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 500,
+  "macro_f1": 0.36288221786610575,
+  "true_positive_rate": 0.050682374541003675,
+  "predicted_positive_rate": 0.06820204581220493,
+  "zero_f1_labels": 0,
+  "feature_seconds": 137.31216039999708,
+  "fit_seconds": 1160.7739062000546,
+  "inference_seconds": 26.135482299971045,
+  "train_and_validation_seconds": 1187.100603400002,
+  "rss_megabytes": 2464.85546875,
+  "scores_sha256": "546824602f588a74589746e7182b1cb1dd962b1f0f6ea72af45467af1fe69005",
+  "python": "3.12.14",
+  "git": {
+    "commit": "df85d30cdb890b246b80aba7d0544469019346d2",
+    "dirty": true
+  }
+}

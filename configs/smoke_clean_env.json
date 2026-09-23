@@ -1,0 +1,26 @@
+{
+  "experiment_id": "EXP-20260921-001-clean-env-smoke",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv",
+    "max_train_samples": 400,
+    "max_test_samples": 64,
+    "max_labels": 8
+  },
+  "split": {
+    "validation_size": 0.2
+  },
+  "features": {
+    "type": "composition"
+  },
+  "model": {
+    "type": "random_forest",
+    "n_estimators": 5,
+    "max_depth": 4,
+    "class_weight": "balanced",
+    "n_jobs": 1
+  },
+  "threshold": 0.5,
+  "output_dir": "artifacts/runs/EXP-20260921-001-clean-env-smoke"
+}
