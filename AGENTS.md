@@ -1,6 +1,6 @@
 # Repository Notes
 
-- Use `E:\CUDA\envs\protein-gpu\python.exe` for the reproducible project environment. CUDA is available for PyTorch, but scikit-learn `SGDClassifier` remains CPU-only.
+- Run commands with the active environment's `python`; never commit machine-specific interpreter or cache paths. Install `requirements.txt` for CPU workflows and use a platform-compatible PyTorch build only for optional GPU experiments. Scikit-learn `SGDClassifier` is CPU-only.
 - Preserve the fixed seed-42 train/validation IDs under `artifacts/metrics/splits/seed42/` when comparing experiments.
 - Screen label-wise hyperparameters with support-stratified labels through `src.sweep_sgd`; do not use only the first labels because they are frequency ordered.
 - Use a new experiment ID and output prefix for every run. Never overwrite earlier metrics.

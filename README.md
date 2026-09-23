@@ -62,27 +62,37 @@ RULES.md                     赛题规则与评测细则
 
 ## 可复现运行
 
+仓库中的 CSV 由 Git LFS 管理。首次克隆后先确认已安装 Git LFS，并拉取数据对象：
+
+```shell
+git lfs install
+git lfs pull
+```
+
 在 Windows PowerShell 中建立独立环境并运行测试：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple --timeout 120 -r requirements.txt
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\Activate.ps1
+python -m pip install --index-url https://pypi.org/simple --timeout 120 -r requirements.txt
+python -m pytest -q
 ```
+
+Linux 和 macOS 使用 `source .venv/bin/activate`。下文命令均假设已经激活项目环境，因此统一使用 `python`，不依赖任何固定磁盘或解释器路径。GPU 实验是可选项；应根据协作者的操作系统、驱动和 CUDA 版本安装兼容的 PyTorch，并先确认 `torch.cuda.is_available()`。`requirements-gpu.txt` 记录原始实验环境，不应视为所有机器通用的 CUDA 锁文件。
 
 执行真实数据冒烟流程（400 条训练记录、64 条测试记录、8 个训练标签，
 输出仍保持完整 500 个标签列）：
 
 ```powershell
-.\.venv\Scripts\python.exe -m src.train --config configs/smoke.json
-.\.venv\Scripts\python.exe -m src.predict --config configs/smoke.json --run-dir artifacts/runs/smoke --output artifacts/submissions/smoke.csv
-.\.venv\Scripts\python.exe -m src.validate_submission --submission artifacts/submissions/smoke.csv --test data/test.csv --label-count 500 --max-test-samples 64
+python -m src.train --config configs/smoke.json
+python -m src.predict --config configs/smoke.json --run-dir artifacts/runs/smoke --output artifacts/submissions/smoke.csv
+python -m src.validate_submission --submission artifacts/submissions/smoke.csv --test data/test.csv --label-count 500 --max-test-samples 64
 ```
 
 对已保存的验证连续分数执行阶段 5 阈值优化：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260922-010-kmer35-sgd-stage5-scores/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-010-stage5-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+python -m src.thresholds --scores artifacts/runs/EXP-20260922-010-kmer35-sgd-stage5-scores/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-010-stage5-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
 ```
 
 该命令扫描统一阈值、逐标签阈值与支持度收缩阈值，并使用双向交叉拟合报告未参与阈值选择样本上的 Macro F1。
@@ -92,14 +102,14 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EX
 运行低正则 3-5-mer 全量验证模型：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.train --config configs/kmer35_sgd_low_alpha_full.json --evaluate
-E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260922-017-kmer35-sgd-low-alpha-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+python -m src.train --config configs/kmer35_sgd_low_alpha_full.json --evaluate
+python -m src.thresholds --scores artifacts/runs/EXP-20260922-017-kmer35-sgd-low-alpha-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
 ```
 
 运行仅使用竞赛数据、从零训练的 CUDA CNN：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.train_gpu --config configs/cnn_gpu_stage6.json
+python -m src.train_gpu --config configs/cnn_gpu_stage6.json
 ```
 
 阶段 6 主模型为低正则 3-5-mer SGD + 逐标签收缩阈值，500 标签双向交叉拟合 Macro F1 为 `0.317516`。
@@ -109,9 +119,9 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.train_gpu --config configs/cnn_gpu_st
 复现第一次迭代的完整验证和提交：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.train --config configs/iteration1_kmer35_sgd_full.json --evaluate
-E:\CUDA\envs\protein-gpu\python.exe -m src.thresholds --scores artifacts/runs/EXP-20260923-025-iteration1-kmer35-sgd-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
-E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/iteration1_final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260923-026.csv --metadata artifacts/metrics/EXP-20260923-026-iteration1-final-metadata.json
+python -m src.train --config configs/iteration1_kmer35_sgd_full.json --evaluate
+python -m src.thresholds --scores artifacts/runs/EXP-20260923-025-iteration1-kmer35-sgd-full/scores.npz --train data/train.csv --output-prefix artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds --seed 42 --holdout-fraction 0.5 --shrinkage 25
+python -m src.finalize --config configs/iteration1_final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260923-025-iteration1-kmer35-sgd-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260923-026.csv --metadata artifacts/metrics/EXP-20260923-026-iteration1-final-metadata.json
 ```
 
 完整实验排行榜见 `artifacts/metrics/leaderboard.csv`。
@@ -121,7 +131,7 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/iteration1_
 在全部 113,796 条训练数据上重训并生成完整提交：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260922-019.csv --metadata artifacts/metrics/EXP-20260922-019-final-metadata.json
+python -m src.finalize --config configs/final_kmer35_sgd.json --thresholds artifacts/metrics/EXP-20260922-017-kmer35-sgd-low-alpha-thresholds-thresholds.json --submission artifacts/submissions/submission_EXP-20260922-019.csv --metadata artifacts/metrics/EXP-20260922-019-final-metadata.json
 ```
 
 正式提交必须通过 28,450 行、501 列、ID 顺序、整数二值和空值校验。推荐提交顺序及平台结果回填表见 `docs/submission_plan.md`。
@@ -131,8 +141,8 @@ E:\CUDA\envs\protein-gpu\python.exe -m src.finalize --config configs/final_kmer3
 重新生成排行榜、图表和 Word 报告：
 
 ```powershell
-E:\CUDA\envs\protein-gpu\python.exe -m src.reporting
-E:\CUDA\envs\protein-gpu\python.exe scripts/build_final_report.py
+python -m src.reporting
+python scripts/build_final_report.py
 ```
 
 最终报告为 `reports/蛋白质功能预测分析报告.docx`，正文源文件为 `reports/final_report.md`。报告遵循官方模板审计出的八部分结构，并包含 22 篇参考文献。

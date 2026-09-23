@@ -70,4 +70,4 @@
 - SHA-256：`a48863c7c65bec1f505022d7e3f679f56d76fb0ee27f09200bac95e96f8dc660`
 - 元数据：`artifacts/metrics/EXP-20260923-026-iteration1-final-metadata.json`
 
-E 盘 CUDA 环境已验证可用（PyTorch 2.14.0+cu130，RTX 4060 Laptop）。本轮稀疏 SGD 使用 scikit-learn CPU 实现；GPU 留待后续神经表示实验。
+原始实验环境的 GPU 验证为 PyTorch 2.14.0+cu130、RTX 4060 Laptop。本轮稀疏 SGD 使用 scikit-learn CPU 实现，不依赖该 GPU 或任何固定环境路径；后续神经表示实验应在协作者各自的兼容 PyTorch 环境中运行。
