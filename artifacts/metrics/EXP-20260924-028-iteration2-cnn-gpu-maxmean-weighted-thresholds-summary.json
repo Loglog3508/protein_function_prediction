@@ -1,0 +1,112 @@
+{
+  "scores_path": "artifacts/runs/EXP-20260924-028-iteration2-cnn-gpu-maxmean-weighted/scores.npz",
+  "train_path": "data/train.csv",
+  "validation_rows": 22876,
+  "calibration_rows": 11438,
+  "holdout_rows": 11438,
+  "seed": 42,
+  "holdout_fraction": 0.5,
+  "strategies": [
+    {
+      "strategy": "fixed_0.5",
+      "calibration_macro_f1": 0.1797977011660089,
+      "holdout_macro_f1": 0.1796293903259598,
+      "calibration_predicted_positive_rate": 0.04269207903479629,
+      "holdout_predicted_positive_rate": 0.042390627732121
+    },
+    {
+      "strategy": "global_selected",
+      "calibration_macro_f1": 0.2068774604119682,
+      "holdout_macro_f1": 0.20764186690407946,
+      "calibration_predicted_positive_rate": 0.0995859415981815,
+      "holdout_predicted_positive_rate": 0.09931386606050009
+    },
+    {
+      "strategy": "per_label_selected",
+      "calibration_macro_f1": 0.22105296565331492,
+      "holdout_macro_f1": 0.21446729373647033,
+      "calibration_predicted_positive_rate": 0.0946469662528414,
+      "holdout_predicted_positive_rate": 0.09435093547823047
+    },
+    {
+      "strategy": "per_label_shrunk",
+      "calibration_macro_f1": 0.21992524739974745,
+      "holdout_macro_f1": 0.21481976642453407,
+      "calibration_predicted_positive_rate": 0.09393442909599581,
+      "holdout_predicted_positive_rate": 0.093656233607274
+    }
+  ],
+  "crossfit_per_label_shrunk": {
+    "macro_f1": 0.2151521028196396,
+    "predicted_positive_rate": 0.09525695051582445
+  },
+  "final_full_validation_fit": {
+    "global_threshold": 0.3500000238418579,
+    "macro_f1": 0.21940640239267298,
+    "predicted_positive_rate": 0.09518840706417206
+  },
+  "true_positive_rate": 0.050682374541003675,
+  "samplewise_label_counts": {
+    "fixed_0.5": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 21.1953138660605,
+        "median": 13.0,
+        "p90": 45.0,
+        "max": 225
+      }
+    },
+    "global_selected": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 49.656933030250045,
+        "median": 38.0,
+        "p90": 98.0,
+        "max": 309
+      }
+    },
+    "per_label_selected": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 47.17546773911523,
+        "median": 36.0,
+        "p90": 94.0,
+        "max": 290
+      }
+    },
+    "per_label_shrunk": {
+      "true": {
+        "mean": 25.5406539604826,
+        "median": 17.0,
+        "p90": 57.0,
+        "max": 262
+      },
+      "predicted": {
+        "mean": 46.828116803637,
+        "median": 35.0,
+        "p90": 93.0,
+        "max": 294
+      }
+    }
+  },
+  "outputs": {
+    "thresholds": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260924-028-iteration2-cnn-gpu-maxmean-weighted-thresholds-thresholds.json",
+    "global_scan": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260924-028-iteration2-cnn-gpu-maxmean-weighted-thresholds-global-scan.csv",
+    "per_label": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260924-028-iteration2-cnn-gpu-maxmean-weighted-thresholds-per-label.csv"
+  }
+}

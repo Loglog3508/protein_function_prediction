@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from .data import label_columns
+from .features import extract_sequence_statistics
 from .metrics import macro_f1_skip_empty
 
 AMINO_ACID_TOKENS = "ACDEFGHIKLMNPQRSTVWYBOUXZ"
@@ -59,6 +60,16 @@ def _seed_everything(seed: int, torch) -> None:
 
 
 def _build_model(torch, *, label_count: int, model_config: dict):
+    pooling_mode = model_config.get("pooling", "max")
+    if pooling_mode not in {"max", "mean", "max_mean"}:
+        raise ValueError("pooling must be one of: max, mean, max_mean")
+    statistics_dimensions = int(model_config.get("statistics_dimensions", 0))
+    statistics_hidden = int(model_config.get("statistics_hidden", 64))
+    if statistics_dimensions < 0:
+        raise ValueError("statistics_dimensions must be non-negative")
+    if statistics_dimensions and statistics_hidden <= 0:
+        raise ValueError("statistics_hidden must be positive when statistics are enabled")
+
     class ProteinCNN(torch.nn.Module):
         def __init__(self):
             super().__init__()
@@ -82,14 +93,48 @@ def _build_model(torch, *, label_count: int, model_config: dict):
                 ]
             )
             self.dropout = torch.nn.Dropout(model_config.get("dropout", 0.2))
-            self.output = torch.nn.Linear(channels * len(kernels), label_count)
+            pooling_multiplier = 2 if pooling_mode == "max_mean" else 1
+            self.statistics_projection = (
+                torch.nn.Sequential(
+                    torch.nn.Linear(statistics_dimensions, statistics_hidden),
+                    torch.nn.LayerNorm(statistics_hidden),
+                    torch.nn.GELU(),
+                )
+                if statistics_dimensions
+                else None
+            )
+            self.output = torch.nn.Linear(
+                channels * len(kernels) * pooling_multiplier
+                + (statistics_hidden if statistics_dimensions else 0),
+                label_count,
+            )
 
-        def forward(self, tokens):
+        def forward(self, tokens, statistics=None):
             embedded = self.embedding(tokens.long()).transpose(1, 2)
-            pooled = [
-                torch.amax(torch.nn.functional.gelu(layer(embedded)), dim=2)
-                for layer in self.convolutions
-            ]
+            pooled = []
+            valid_mask = tokens.ne(0).unsqueeze(1)
+            for layer in self.convolutions:
+                features = torch.nn.functional.gelu(layer(embedded))
+                if pooling_mode == "max":
+                    pooled.append(torch.amax(features, dim=2))
+                    continue
+                expanded_mask = valid_mask.expand(-1, features.shape[1], -1)
+                masked_features = features.masked_fill(~expanded_mask, 0.0)
+                mean_features = masked_features.sum(dim=2) / valid_mask.sum(
+                    dim=2
+                ).clamp_min(1)
+                if pooling_mode == "mean":
+                    pooled.append(mean_features)
+                else:
+                    negative_infinity = torch.finfo(features.dtype).min
+                    max_features = features.masked_fill(
+                        ~expanded_mask, negative_infinity
+                    ).amax(dim=2)
+                    pooled.extend((max_features, mean_features))
+            if self.statistics_projection is not None:
+                if statistics is None:
+                    raise ValueError("statistics are required by this model")
+                pooled.append(self.statistics_projection(statistics.float()))
             return self.output(self.dropout(torch.cat(pooled, dim=1)))
 
     return ProteinCNN()
@@ -101,12 +146,15 @@ def _predict_scores(torch, model, loader, device, amp_enabled: bool) -> np.ndarr
     with torch.inference_mode():
         for batch in loader:
             tokens = batch[0].to(device, non_blocking=True)
+            statistics = (
+                batch[1].to(device, non_blocking=True) if len(batch) > 1 else None
+            )
             with torch.amp.autocast(
                 device_type=device.type,
                 dtype=torch.float16,
                 enabled=amp_enabled,
             ):
-                logits = model(tokens)
+                logits = model(tokens, statistics)
             batches.append(torch.sigmoid(logits).float().cpu().numpy())
     return np.concatenate(batches).astype(np.float32, copy=False)
 
@@ -170,6 +218,22 @@ def run_gpu_evaluation(
     encoding_seconds = time.perf_counter() - encoding_started
     training_target = training[labels].to_numpy(dtype=np.uint8)
     validation_target = validation[labels].to_numpy(dtype=np.uint8)
+    use_statistics = bool(config["model"].get("use_sequence_statistics", False))
+    training_statistics = (
+        extract_sequence_statistics(training["sequence"].tolist())
+        if use_statistics
+        else None
+    )
+    validation_statistics = (
+        extract_sequence_statistics(validation["sequence"].tolist())
+        if use_statistics
+        else None
+    )
+    test_statistics = (
+        extract_sequence_statistics(test["sequence"].tolist())
+        if use_statistics and test is not None
+        else None
+    )
 
     batch_size = int(config["training"]["batch_size"])
     loader_options = {
@@ -177,21 +241,39 @@ def run_gpu_evaluation(
         "num_workers": 0,
         "pin_memory": device.type == "cuda",
     }
-    training_dataset = torch.utils.data.TensorDataset(
-        torch.from_numpy(training_tokens), torch.from_numpy(training_target)
-    )
+    if use_statistics:
+        training_dataset = torch.utils.data.TensorDataset(
+            torch.from_numpy(training_tokens),
+            torch.from_numpy(training_statistics),
+            torch.from_numpy(training_target),
+        )
+    else:
+        training_dataset = torch.utils.data.TensorDataset(
+            torch.from_numpy(training_tokens), torch.from_numpy(training_target)
+        )
     generator = torch.Generator().manual_seed(seed)
     training_loader = torch.utils.data.DataLoader(
         training_dataset, shuffle=True, generator=generator, **loader_options
     )
+    validation_dataset = (
+        torch.utils.data.TensorDataset(
+            torch.from_numpy(validation_tokens), torch.from_numpy(validation_statistics)
+        )
+        if use_statistics
+        else torch.utils.data.TensorDataset(torch.from_numpy(validation_tokens))
+    )
     validation_loader = torch.utils.data.DataLoader(
-        torch.utils.data.TensorDataset(torch.from_numpy(validation_tokens)),
-        shuffle=False,
-        **loader_options,
+        validation_dataset, shuffle=False, **loader_options
     )
     test_loader = (
         torch.utils.data.DataLoader(
-            torch.utils.data.TensorDataset(torch.from_numpy(test_tokens)),
+            (
+                torch.utils.data.TensorDataset(
+                    torch.from_numpy(test_tokens), torch.from_numpy(test_statistics)
+                )
+                if use_statistics
+                else torch.utils.data.TensorDataset(torch.from_numpy(test_tokens))
+            ),
             shuffle=False,
             **loader_options,
         )
@@ -199,7 +281,10 @@ def run_gpu_evaluation(
         else None
     )
 
-    model = _build_model(torch, label_count=len(labels), model_config=config["model"])
+    model_config = dict(config["model"])
+    if use_statistics:
+        model_config.setdefault("statistics_dimensions", training_statistics.shape[1])
+    model = _build_model(torch, label_count=len(labels), model_config=model_config)
     model.to(device)
     positive = training_target.sum(axis=0).astype(np.float32)
     negative = len(training_target) - positive
@@ -227,7 +312,13 @@ def run_gpu_evaluation(
     for epoch in range(int(config["training"]["epochs"])):
         model.train()
         total_loss = 0.0
-        for tokens, target in training_loader:
+        for batch in training_loader:
+            if use_statistics:
+                tokens, statistics, target = batch
+                statistics = statistics.to(device, non_blocking=True)
+            else:
+                tokens, target = batch
+                statistics = None
             tokens = tokens.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True).float()
             optimizer.zero_grad(set_to_none=True)
@@ -236,7 +327,7 @@ def run_gpu_evaluation(
                 dtype=torch.float16,
                 enabled=amp_enabled,
             ):
-                loss = loss_function(model(tokens), target)
+                loss = loss_function(model(tokens, statistics), target)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()

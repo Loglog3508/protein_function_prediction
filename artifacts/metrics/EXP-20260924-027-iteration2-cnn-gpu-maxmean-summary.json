@@ -1,0 +1,79 @@
+{
+  "experiment_id": "EXP-20260924-027-iteration2-cnn-gpu-maxmean",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1024,
+    "embedding_dim": 32,
+    "channels": 64,
+    "kernels": [
+      3,
+      7,
+      15
+    ],
+    "pooling": "max_mean",
+    "dropout": 0.2
+  },
+  "training": {
+    "epochs": 6,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "weight_decay": 0.01,
+    "max_positive_weight": 8.0,
+    "amp": true,
+    "require_cuda": true
+  },
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_rows": 90920,
+  "validation_rows": 22876,
+  "label_count": 500,
+  "macro_f1": 0.14269557855624207,
+  "true_positive_rate": 0.050682374541003675,
+  "predicted_positive_rate": 0.03481500262283616,
+  "encoding_seconds": 0.4687679999997272,
+  "train_and_validation_seconds": 221.70609839999997,
+  "history": [
+    {
+      "epoch": 1,
+      "training_loss": 0.4714193949760239,
+      "validation_macro_f1_at_0.5": 0.05501489457283259,
+      "validation_predicted_positive_rate": 0.01897237279244623
+    },
+    {
+      "epoch": 2,
+      "training_loss": 0.4445061673532747,
+      "validation_macro_f1_at_0.5": 0.08049131023006821,
+      "validation_predicted_positive_rate": 0.020800227312467213
+    },
+    {
+      "epoch": 3,
+      "training_loss": 0.4341352806262282,
+      "validation_macro_f1_at_0.5": 0.1123188011550683,
+      "validation_predicted_positive_rate": 0.028098356356006295
+    },
+    {
+      "epoch": 4,
+      "training_loss": 0.4267444620114615,
+      "validation_macro_f1_at_0.5": 0.13677969194367023,
+      "validation_predicted_positive_rate": 0.032430582269627556
+    },
+    {
+      "epoch": 5,
+      "training_loss": 0.4211972803310104,
+      "validation_macro_f1_at_0.5": 0.14269557855624207,
+      "validation_predicted_positive_rate": 0.03481500262283616
+    },
+    {
+      "epoch": 6,
+      "training_loss": 0.4170252268030105,
+      "validation_macro_f1_at_0.5": 0.13158551732095872,
+      "validation_predicted_positive_rate": 0.029636474908200733
+    }
+  ],
+  "scores_sha256": "8e94e74e166b8b28ab3f8889e6cc8f5e82fce6315de58493deb6664c365fd931"
+}

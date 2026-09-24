@@ -21,6 +21,10 @@
 - 词表从 30k 到 60k、120k 持续提升，尚未证明 120k 是容量上限。
 - 旧模型、CNN、标签共现传播、相近 SGD 融合和 protein ID 邻域传播均未带来收益。
 - 阈值步长从 0.05 细化到 0.01 没有稳定实质收益；保持 0.05 即可。
+- 第二轮 GPU CNN 已完成 max/mean 双池化、正类权重、474 维序列统计分支和
+  16 轮长训练。最佳 500 标签交叉拟合 Macro F1 为 0.246370，较旧 CUDA
+  CNN 的 0.184126 提升，但仍明显弱于 120k k-mer SGD，因此不进入正式提交。
+  详见 `reports/experiments/EXP-20260924-iteration2-gpu.md`。
 
 ## 二轮优先顺序
 
@@ -61,7 +65,7 @@ python -m src.sweep_sgd --config configs/iteration1_vocab120k_screen.json
 
 ## 实验编号与基线
 
-- 下一实验编号从 `EXP-20260923-027` 开始。
+- 下一实验编号从 `EXP-20260924-031` 开始。
 - 二轮所有筛选必须包含当前 120k、`alpha=5e-6` 基线，或复用第一轮相同的支持度分层标签列表进行严格比较。
 - 机器可读排行榜：`artifacts/metrics/leaderboard.csv`
 - 提交顺序：`docs/submission_plan.md`
