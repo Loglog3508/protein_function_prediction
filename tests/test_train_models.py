@@ -6,6 +6,32 @@ import src.train
 
 
 class LabelModelTests(unittest.TestCase):
+    def test_training_sample_weights_change_fitted_scores(self):
+        features = np.zeros((4, 1), dtype=np.float32)
+        target = np.array([[0], [0], [0], [1]], dtype=np.uint8)
+        config = {
+            "type": "sgd",
+            "class_weight": None,
+            "alpha": 0.0001,
+            "max_iter": 2000,
+            "tol": 1e-6,
+            "n_jobs": 1,
+        }
+
+        _, unweighted = src.train.fit_label_models(
+            features, target, features[:1], model_config=config, seed=42
+        )
+        _, weighted = src.train.fit_label_models(
+            features,
+            target,
+            features[:1],
+            model_config=config,
+            seed=42,
+            training_sample_weight=np.array([1.0, 1.0, 1.0, 20.0]),
+        )
+
+        self.assertGreater(weighted[0, 0], unweighted[0, 0])
+
     def test_custom_positive_class_weight_is_supported(self):
         features = np.array([[0.0], [0.2], [0.8], [1.0]], dtype=np.float32)
         target = np.array([[0], [0], [1], [1]], dtype=np.uint8)

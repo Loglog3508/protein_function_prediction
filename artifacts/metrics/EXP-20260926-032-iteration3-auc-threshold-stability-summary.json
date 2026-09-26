@@ -1,0 +1,19 @@
+{
+  "experiment_id": "EXP-20260926-032-iteration3-auc-threshold-stability",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "best": {
+    "candidate": "tail-weight-2",
+    "shrinkage": 25,
+    "mean_macro_auc": 0.747693526381407,
+    "std_macro_auc": 0.0018598163976874288,
+    "min_macro_auc": 0.7442896466557335,
+    "max_macro_auc": 0.7497881013606604
+  },
+  "output": "artifacts\\metrics\\EXP-20260926-032-iteration3-auc-threshold-stability.csv"
+}

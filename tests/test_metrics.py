@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import src.metrics
-from src.metrics import macro_f1_skip_empty
+from src.metrics import macro_f1_skip_empty, macro_roc_auc_skip_degenerate
 
 
 class MacroF1Tests(unittest.TestCase):
@@ -52,6 +52,25 @@ class MacroF1Tests(unittest.TestCase):
         self.assertEqual(first.f1, 0.5)
         self.assertEqual(second.f1, 0.0)
         self.assertAlmostEqual(first.predicted_positive_rate, 2 / 3)
+
+
+class MacroRocAucTests(unittest.TestCase):
+    def test_degenerate_labels_are_skipped(self):
+        target = np.array(
+            [[0, 1, 0], [0, 1, 0], [1, 1, 0], [1, 1, 0]], dtype=np.uint8
+        )
+        scores = np.array(
+            [[0.1, 0.9, 0.2], [0.2, 0.8, 0.3], [0.8, 0.7, 0.4], [0.9, 0.6, 0.5]],
+            dtype=np.float32,
+        )
+
+        self.assertEqual(macro_roc_auc_skip_degenerate(target, scores), 1.0)
+
+    def test_all_degenerate_labels_are_rejected(self):
+        target = np.ones((3, 2), dtype=np.uint8)
+
+        with self.assertRaisesRegex(ValueError, "both classes"):
+            macro_roc_auc_skip_degenerate(target, target.astype(np.float32))
 
 
 if __name__ == "__main__":

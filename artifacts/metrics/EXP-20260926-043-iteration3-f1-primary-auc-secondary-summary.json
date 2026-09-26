@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-20260926-043-iteration3-f1-primary-auc-secondary",
+  "objective": "Macro F1 primary; continuous Macro AUC secondary",
+  "validation_rows": 1062,
+  "label_count": 500,
+  "best": {
+    "candidate": "primary-0.20",
+    "primary_weight": 0.2,
+    "shrinkage": 10.0,
+    "crossfit_macro_f1": 0.32398192552777466,
+    "continuous_macro_auc": 0.8144089436592394,
+    "fixed_0.5_macro_f1": 0.26804828793998997,
+    "predicted_positive_rate": 0.10045762711864407
+  },
+  "outputs": {
+    "leaderboard": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-043-iteration3-f1-primary-auc-secondary-leaderboard.csv",
+    "best_scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260926-043-iteration3-f1-primary-auc-secondary\\best-scores.npz",
+    "thresholds": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-043-iteration3-f1-primary-auc-secondary-thresholds.json"
+  }
+}

@@ -179,6 +179,49 @@ class EvaluationRunnerTests(unittest.TestCase):
         self.assertEqual(train_matrix.shape[1], resources["vocabulary_size"] + 433)
         self.assertEqual(validation_matrix.shape[1], train_matrix.shape[1])
 
+    def test_kmer_blocks_keep_separate_vocabularies(self):
+        training = pd.DataFrame(
+            {"sequence": ["ACDEFG", "AAAAAA", "CCCCCC", "ACACAC"]}
+        )
+        validation = pd.DataFrame({"sequence": ["ACDEAC"]})
+        build_matrices = getattr(src.train, "_build_feature_matrices")
+
+        train_matrix, validation_matrix, resources, transformer = build_matrices(
+            training,
+            validation,
+            {
+                "type": "kmer_tfidf_blocks",
+                "blocks": [
+                    {
+                        "name": "short",
+                        "k_min": 3,
+                        "k_max": 3,
+                        "min_df": 1,
+                        "max_features": 5,
+                        "sublinear_tf": True,
+                    },
+                    {
+                        "name": "long",
+                        "k_min": 4,
+                        "k_max": 5,
+                        "min_df": 1,
+                        "max_features": 7,
+                        "sublinear_tf": True,
+                    },
+                ],
+            },
+        )
+
+        self.assertTrue(resources["sparse"])
+        self.assertEqual(set(resources["block_vocabulary_sizes"]), {"short", "long"})
+        self.assertEqual(
+            resources["vocabulary_size"],
+            sum(resources["block_vocabulary_sizes"].values()),
+        )
+        self.assertEqual(train_matrix.shape[1], resources["vocabulary_size"])
+        self.assertEqual(validation_matrix.shape[1], train_matrix.shape[1])
+        self.assertEqual(transformer.transform(["AAAAAA"]).shape[1], train_matrix.shape[1])
+
 
 if __name__ == "__main__":
     unittest.main()

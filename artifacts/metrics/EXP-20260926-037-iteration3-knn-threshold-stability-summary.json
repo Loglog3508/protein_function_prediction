@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-20260926-037-iteration3-knn-threshold-stability",
+  "date": "2026-09-26",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "best": {
+    "primary_weight": 0.5,
+    "shrinkage": 50.0,
+    "mean_macro_auc": 0.7498150845657751,
+    "std_macro_auc": 0.000934384552719951,
+    "min_macro_auc": 0.7489601584103476,
+    "max_macro_auc": 0.7516035294080043
+  },
+  "output": "artifacts\\metrics\\EXP-20260926-037-iteration3-knn-threshold-stability.csv"
+}

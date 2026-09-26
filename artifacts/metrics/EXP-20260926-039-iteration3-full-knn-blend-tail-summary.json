@@ -1,0 +1,44 @@
+{
+  "experiment_id": "EXP-20260926-039-iteration3-full-knn-blend-tail",
+  "primary_scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260926-038-iteration3-full-tail-sgd\\tail-weight-2-scores.npz",
+  "cutoff": 112734,
+  "folds": 2,
+  "early_rows": 112734,
+  "tail_rows": 1062,
+  "label_count": 500,
+  "feature_seconds": 166.3167637000006,
+  "knn_seconds": 46.21836060000351,
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 120000,
+    "block_vocabulary_sizes": null,
+    "statistics_dimensions": 0,
+    "train_shape": [
+      112734,
+      120000
+    ],
+    "train_nnz": 111058455,
+    "train_bytes": 888918580,
+    "validation_shape": [
+      1062,
+      120000
+    ],
+    "validation_nnz": 716681,
+    "validation_bytes": 5737700
+  },
+  "best_candidate": {
+    "candidate": "primary-0.50",
+    "primary_weight": 0.5,
+    "continuous_macro_auc": 0.8115646722700294,
+    "fixed_binary_macro_auc": 0.6610339684992812,
+    "crossfit_binary_macro_auc": 0.7511376019225482,
+    "fixed_macro_f1": 0.30022072358551344,
+    "crossfit_macro_f1": 0.3160072399085784,
+    "predicted_positive_rate": 0.1706647834274953
+  },
+  "outputs": {
+    "leaderboard": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-039-iteration3-full-knn-blend-tail-leaderboard.csv",
+    "knn_scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260926-039-iteration3-full-knn-blend-tail\\knn-scores.npz",
+    "best_scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260926-039-iteration3-full-knn-blend-tail\\best-scores.npz"
+  }
+}

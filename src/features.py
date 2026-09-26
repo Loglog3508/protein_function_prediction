@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 
 import numpy as np
+from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
@@ -38,6 +39,69 @@ def build_kmer_vectorizer(
         lowercase=False,
         dtype=np.float32,
     )
+
+
+class KmerBlockVectorizer:
+    """Fit and concatenate independently capped character k-mer blocks."""
+
+    def __init__(self, blocks: list[dict]):
+        if not blocks:
+            raise ValueError("at least one k-mer block is required")
+        self.names = []
+        self.weights = []
+        self.vectorizers = []
+        for block in blocks:
+            name = str(block["name"])
+            if name in self.names:
+                raise ValueError("k-mer block names must be unique")
+            self.names.append(name)
+            self.weights.append(float(block.get("weight", 1.0)))
+            self.vectorizers.append(
+                build_kmer_vectorizer(
+                    k_min=int(block["k_min"]),
+                    k_max=int(block["k_max"]),
+                    min_df=block["min_df"],
+                    max_features=block.get("max_features"),
+                    sublinear_tf=bool(block.get("sublinear_tf", True)),
+                )
+            )
+
+    def _combine(self, matrices):
+        weighted = [
+            matrix if weight == 1.0 else matrix.multiply(weight)
+            for matrix, weight in zip(matrices, self.weights, strict=True)
+        ]
+        return sparse.hstack(weighted, format="csr", dtype=np.float32)
+
+    def fit_transform(self, sequences: Iterable[str]):
+        values = list(sequences)
+        return self._combine(
+            [vectorizer.fit_transform(values) for vectorizer in self.vectorizers]
+        )
+
+    def transform(self, sequences: Iterable[str]):
+        values = list(sequences)
+        return self._combine(
+            [vectorizer.transform(values) for vectorizer in self.vectorizers]
+        )
+
+    @property
+    def block_vocabulary_sizes(self) -> dict[str, int]:
+        return {
+            name: len(vectorizer.vocabulary_)
+            for name, vectorizer in zip(
+                self.names, self.vectorizers, strict=True
+            )
+        }
+
+    @property
+    def vocabulary_size(self) -> int:
+        return sum(self.block_vocabulary_sizes.values())
+
+
+def build_kmer_block_vectorizer(blocks: list[dict]) -> KmerBlockVectorizer:
+    """Create a transformer that preserves separate k-mer vocabularies."""
+    return KmerBlockVectorizer(blocks)
 
 
 def extract_composition_features(sequences: Iterable[str]) -> np.ndarray:

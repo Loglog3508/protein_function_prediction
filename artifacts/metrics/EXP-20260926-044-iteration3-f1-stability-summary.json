@@ -1,0 +1,30 @@
+{
+  "experiment_id": "EXP-20260926-044-iteration3-f1-stability",
+  "objective": "Macro F1 primary; continuous Macro AUC secondary",
+  "validation_rows": 1062,
+  "label_count": 500,
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "best": {
+    "candidate": "primary-0.10",
+    "primary_weight": 0.1,
+    "shrinkage": 10.0,
+    "mean_crossfit_macro_f1": 0.3215169269432081,
+    "std_crossfit_macro_f1": 0.0024322549849381185,
+    "min_crossfit_macro_f1": 0.31898001233799905,
+    "continuous_macro_auc": 0.8150451732223777,
+    "mean_predicted_positive_rate": 0.09928474576271187,
+    "seed_count": 5
+  },
+  "outputs": {
+    "leaderboard": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-044-iteration3-f1-stability-leaderboard.csv",
+    "seed_results": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-044-iteration3-f1-stability-seed-results.csv",
+    "best_scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260926-044-iteration3-f1-stability\\best-scores.npz",
+    "thresholds": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260926-044-iteration3-f1-stability-thresholds.json"
+  }
+}

@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, roc_auc_score
 
 
 def macro_f1_skip_empty(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -16,6 +16,21 @@ def macro_f1_skip_empty(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         raise ValueError("at least one label must contain a positive sample")
     scores = f1_score(y_true[:, active], y_pred[:, active], average=None, zero_division=0)
     return float(np.mean(scores))
+
+
+def macro_roc_auc_skip_degenerate(
+    y_true: np.ndarray, y_score: np.ndarray
+) -> float:
+    """Compute label-wise Macro ROC AUC, excluding single-class labels."""
+    y_true = np.asarray(y_true)
+    y_score = np.asarray(y_score)
+    if y_true.shape != y_score.shape or y_true.ndim != 2:
+        raise ValueError("y_true and y_score must be two-dimensional with equal shape")
+    positive = y_true.sum(axis=0)
+    active = (positive > 0) & (positive < len(y_true))
+    if not active.any():
+        raise ValueError("at least one label must contain both classes")
+    return float(roc_auc_score(y_true[:, active], y_score[:, active], average="macro"))
 
 
 def per_label_classification_metrics(

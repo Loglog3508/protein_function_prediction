@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .metrics import macro_f1_skip_empty
+from .metrics import macro_f1_skip_empty, macro_roc_auc_skip_degenerate
 
 
 def _validate_inputs(y_true: np.ndarray, scores: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -33,6 +33,26 @@ def threshold_predictions(scores: np.ndarray, thresholds: float | np.ndarray) ->
     if thresholds.shape != (scores.shape[1],):
         raise ValueError("per-label thresholds must match score columns")
     return (scores >= thresholds[np.newaxis, :]).astype(np.uint8)
+
+
+def reorder_label_thresholds(
+    thresholds: np.ndarray,
+    source_labels: list[str],
+    destination_labels: list[str],
+) -> np.ndarray:
+    """Reorder thresholds by label name rather than relying on column position."""
+    thresholds = np.asarray(thresholds, dtype=np.float32)
+    if thresholds.ndim != 1 or thresholds.shape[0] != len(source_labels):
+        raise ValueError("threshold count must match source labels")
+    if len(set(source_labels)) != len(source_labels):
+        raise ValueError("source labels must be unique")
+    if set(source_labels) != set(destination_labels):
+        raise ValueError("source and destination labels must contain the same names")
+    positions = {label: index for index, label in enumerate(source_labels)}
+    return np.asarray(
+        [thresholds[positions[label]] for label in destination_labels],
+        dtype=np.float32,
+    )
 
 
 def _candidate_thresholds(candidates: np.ndarray | None) -> np.ndarray:
@@ -77,6 +97,83 @@ def select_global_threshold(
     """Select the best shared threshold and return the complete scan."""
     scan = scan_global_thresholds(y_true, scores, candidates)
     return float(scan.iloc[0]["threshold"]), scan
+
+
+def scan_global_auc_thresholds(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    candidates: np.ndarray | None = None,
+) -> pd.DataFrame:
+    """Evaluate binary Macro AUC for one threshold shared by all labels."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    rows = []
+    for threshold in candidates:
+        predictions = threshold_predictions(scores, float(threshold))
+        rows.append(
+            {
+                "threshold": float(threshold),
+                "macro_auc": macro_roc_auc_skip_degenerate(y_true, predictions),
+                "predicted_positive_rate": float(predictions.mean()),
+            }
+        )
+    return pd.DataFrame(rows).sort_values(
+        ["macro_auc", "threshold"], ascending=[False, True], ignore_index=True
+    )
+
+
+def select_global_auc_threshold(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    candidates: np.ndarray | None = None,
+) -> tuple[float, pd.DataFrame]:
+    """Select the shared threshold with the highest binary Macro AUC."""
+    scan = scan_global_auc_thresholds(y_true, scores, candidates)
+    return float(scan.iloc[0]["threshold"]), scan
+
+
+def select_label_auc_thresholds(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    global_threshold: float = 0.5,
+    candidates: np.ndarray | None = None,
+) -> tuple[np.ndarray, pd.DataFrame]:
+    """Select per-label thresholds that maximize binary ROC AUC."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    thresholds = np.full(scores.shape[1], global_threshold, dtype=np.float32)
+    rows = []
+    for label_index in range(scores.shape[1]):
+        target = y_true[:, label_index].astype(bool)
+        support = int(target.sum())
+        negative = len(target) - support
+        best_threshold = float(global_threshold)
+        best_auc = 0.5
+        if support and negative:
+            for threshold in candidates:
+                prediction = scores[:, label_index] >= threshold
+                true_positive_rate = float((target & prediction).sum() / support)
+                true_negative_rate = float((~target & ~prediction).sum() / negative)
+                auc = (true_positive_rate + true_negative_rate) / 2.0
+                if auc > best_auc or (
+                    auc == best_auc
+                    and abs(float(threshold) - global_threshold)
+                    < abs(best_threshold - global_threshold)
+                ):
+                    best_auc = auc
+                    best_threshold = float(threshold)
+        thresholds[label_index] = best_threshold
+        rows.append(
+            {
+                "label_index": label_index,
+                "support": support,
+                "threshold": best_threshold,
+                "auc": best_auc,
+                "used_global_fallback": support == 0 or negative == 0,
+            }
+        )
+    return thresholds, pd.DataFrame(rows)
 
 
 def select_label_thresholds(
@@ -203,6 +300,48 @@ def crossfit_shrunk_threshold_score(
     }
 
 
+def crossfit_shrunk_auc_threshold_score(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    seed: int = 42,
+    shrinkage: float = 25.0,
+    candidates: np.ndarray | None = None,
+) -> dict:
+    """Evaluate AUC-optimized shrunk thresholds with two-fold cross-fitting."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    rng = np.random.default_rng(seed)
+    first, second = np.array_split(rng.permutation(len(y_true)), 2)
+    predictions = np.zeros_like(y_true, dtype=np.uint8)
+    fold_thresholds = []
+    for selection_index, evaluation_index in ((first, second), (second, first)):
+        global_threshold, _ = select_global_auc_threshold(
+            y_true[selection_index], scores[selection_index], candidates
+        )
+        label_thresholds, _ = select_label_auc_thresholds(
+            y_true[selection_index],
+            scores[selection_index],
+            global_threshold=global_threshold,
+            candidates=candidates,
+        )
+        thresholds = shrink_label_thresholds(
+            label_thresholds,
+            y_true[selection_index].sum(axis=0),
+            global_threshold=global_threshold,
+            shrinkage=shrinkage,
+        )
+        fold_thresholds.append(thresholds)
+        predictions[evaluation_index] = threshold_predictions(
+            scores[evaluation_index], thresholds
+        )
+    return {
+        "macro_auc": macro_roc_auc_skip_degenerate(y_true, predictions),
+        "predicted_positive_rate": float(predictions.mean()),
+        "fold_thresholds": fold_thresholds,
+    }
+
+
 def fit_shrunk_thresholds(
     y_true: np.ndarray,
     scores: np.ndarray,
@@ -219,6 +358,45 @@ def fit_shrunk_thresholds(
         scores,
         global_threshold=global_threshold,
         candidates=candidates,
+    )
+    return (
+        shrink_label_thresholds(
+            label_thresholds,
+            y_true.sum(axis=0),
+            global_threshold=global_threshold,
+            shrinkage=shrinkage,
+        ),
+        global_threshold,
+    )
+
+
+def fit_shrunk_auc_thresholds(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    shrinkage: float = 25.0,
+    candidates: np.ndarray | None = None,
+) -> tuple[np.ndarray, float]:
+    """Fit AUC-optimized shrunk per-label thresholds on all supplied rows."""
+    y_true, scores = _validate_inputs(y_true, scores)
+    candidates = _candidate_thresholds(candidates)
+    global_threshold, _ = select_global_auc_threshold(
+        y_true, scores, candidates
+    )
+    label_thresholds, _ = select_label_auc_thresholds(
+        y_true,
+        scores,
+        global_threshold=global_threshold,
+        candidates=candidates,
+    )
+    return (
+        shrink_label_thresholds(
+            label_thresholds,
+            y_true.sum(axis=0),
+            global_threshold=global_threshold,
+            shrinkage=shrinkage,
+        ),
+        global_threshold,
     )
     return (
         shrink_label_thresholds(

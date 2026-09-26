@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-20260926-040-iteration3-full-threshold-stability",
+  "date": "2026-09-26",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "best": {
+    "primary_weight": 0.5,
+    "shrinkage": 50.0,
+    "mean_macro_auc": 0.7497209366027591,
+    "std_macro_auc": 0.0013567182337738848,
+    "min_macro_auc": 0.7472019669972464,
+    "max_macro_auc": 0.7511376019225482
+  },
+  "output": "artifacts\\metrics\\EXP-20260926-040-iteration3-full-threshold-stability.csv"
+}

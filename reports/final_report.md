@@ -1,66 +1,46 @@
-# 蛋白质功能预测：基于 k-mer 表征、类别不平衡学习与稳健阈值优化的多标签分类
+# 蛋白质功能预测第三次实验报告
 
 ## 分析结果概要
 
-本项目针对 113,796 条带标注蛋白质序列和 28,450 条测试序列，构建 500 个功能标签的多标签分类系统。评价指标为逐标签 F1 的宏平均，因此稀有标签与阈值校准对最终得分具有决定性影响。我们在严格不使用外部训练数据和预训练权重的前提下，比较氨基酸组成、二肽与理化统计特征、字符级 3 至 5-mer TF-IDF、随机森林、线性分类器以及从零训练的轻量一维卷积神经网络。最终方案采用 120,000 维 3 至 5-mer TF-IDF、带类别平衡的 SGD 逻辑损失分类器，并将正则系数优化为 5×10^-6。针对固定阈值造成的过预测问题，设计逐标签阈值搜索和基于标签支持度的阈值收缩，并通过双向交叉拟合评估泛化性能。最终模型的 500 标签交叉拟合 Macro F1 为 0.379956，相比随机森林基线 0.204983 提升 85.4%，相比阶段 5 主模型 0.293085 提升 29.6%。在全部训练数据上重训后生成 28,450 行、501 列的正式提交文件，并通过列顺序、ID、数据类型、空值和二值性自动校验。
+本项目使用竞赛提供的训练集和测试集完成 500 个蛋白质功能标签的多标签预测。竞赛得分为逐标签 F1 的宏平均，并跳过测试子集中没有正样本的标签。第三次实验因此以 Macro F1 为首要优化目标，同时保留连续 Macro AUC 作为模型排序能力和稳定性的辅助指标。所有训练仅使用竞赛 CSV，不使用外部数据和预训练权重。
 
-关键词：蛋白质功能预测；多标签分类；k-mer；TF-IDF；类别不平衡；阈值优化
+数据审计发现，训练集与测试集的 `protein_id` 合并后近似按连续编号覆盖 `P000000` 至 `P142245`，测试样本主要位于 `P112734` 之后，而训练集中该尾段只有 1,062 条有标签样本。固定随机划分不能充分反映这种分布差异。因此第三次实验将尾段带标签样本作为测试分布代理，使用尾段样本加权、尾段交叉验证和序列近邻标签迁移重新选择模型。
 
-## 第一章  目标说明
+最终方案由 120,000 维字符级 3 至 5-mer TF-IDF、balanced SGD 逻辑分类器和稀疏余弦 KNN 组成。SGD 使用尾段样本权重 2，KNN 使用 20 个近邻和相似度平方加权。五个阈值划分 seed 的稳定性筛选表明，SGD 10% 与 KNN 90% 的融合在 F1 和 AUC 之间取得最佳平衡：尾段交叉拟合 Macro F1 均值为 0.321517，标准差为 0.002432，连续 Macro AUC 为 0.815045。最终阈值按标签独立优化 F1，并以支持度收缩强度 10 向全局阈值收缩。
 
-蛋白质功能由氨基酸序列、结构域组合、亚细胞定位和进化关系共同决定。UniProt 与 Gene Ontology 为蛋白质功能注释提供了知识基础[1-2]，CAFA 系列评测则系统展示了计算功能预测的进展与难点[3-5]。实验验证成本高、周期长，自动化序列功能预测可为注释和候选筛选提供有效支持。本赛题将高频功能术语映射为 `label_0` 至 `label_499`，要求根据一条蛋白质序列同时判断多个标签。
+正式模型在全部 113,796 条训练样本上重训，生成 28,450 行、501 列的 `submit_template_v1.csv`。提交文件已通过行列数、标签顺序、测试 ID 顺序、空值、数据类型和二值性检查。最终预测正例率为 11.637%，平均每条测试序列预测 58.19 个标签。
 
-项目目标包括：第一，建立可复现、可审计的数据读取、划分、训练、评估和提交流程；第二，在不引入外部数据的条件下提升 500 标签 Macro F1；第三，针对长尾分布和不同标签概率尺度设计稳健阈值；第四，生成满足官方格式的全量测试集提交文件和规范分析报告。方法设计综合参考了深度蛋白质功能预测、蛋白质语言模型、经典分类器、多标签学习、分层抽样、阈值优化、随机梯度下降、TF-IDF、评价指标和机器学习软件工程等研究[6-22]。
+关键词：蛋白质功能预测；多标签分类；Macro F1；k-mer；TF-IDF；近邻迁移；分布偏移
 
-## 第二章  理论基础
+## 第一章  任务与评价指标
 
-### 2.1 多标签分类与 Macro F1
+### 1.1 任务说明
 
-设第 j 个标签的真阳性、假阳性和假阴性分别为 TP_j、FP_j 和 FN_j，则 F1_j = 2TP_j / (2TP_j + FP_j + FN_j)。官方指标对评估子集中存在正样本的标签求算术平均。Macro F1 对每个标签赋予相同权重，因此高频标签不能掩盖稀有标签上的错误。
+训练集包含蛋白质编号、氨基酸序列和 `label_0` 至 `label_499` 共 500 个二值功能标签。测试集只提供蛋白质编号与序列，要求输出每个测试样本在 500 个标签上的 0 或 1 预测。正式提交列顺序必须与模板一致，首列为 `protein_id`。
 
-### 2.2 k-mer 与 TF-IDF
+本项目遵守竞赛规则，仅使用竞赛提供的 CSV 文件。模型不调用外部数据库，不下载蛋白质预训练权重，也不引入人工标签。CUDA 环境仅用于可选的本地实验，最终方案的 SGD 和稀疏 KNN 可在 CPU 上复现。
 
-长度为 k 的连续氨基酸片段称为 k-mer。字符级 n-gram 能表示局部保守模式和短基序，同时规避固定序列长度。TF-IDF 抑制在多数序列中普遍出现的片段，提高具有区分度的局部模式权重。筛选实验表明 30,000 维词表仍存在明显的信息截断，最终扩展至 120,000 维并始终使用 float32 稀疏矩阵。
+### 1.2 Macro F1
 
-### 2.3 类别不平衡与阈值
+对第 j 个标签，F1 定义为 F1_j = 2TP_j / (2TP_j + FP_j + FN_j)。竞赛先分别计算每个标签的 F1，再跳过测试子集中没有正样本的标签，最后取算术平均。该指标对每个有效标签赋予相同权重，因此稀有标签不会被高频标签掩盖，阈值选择也会直接影响最终排名。
 
-训练集总体标签密度仅约 5.08%，不同标签的正例数差异显著。`class_weight="balanced"` 能提高稀有标签的训练权重，但也会使概率整体偏高。最终模型在固定 0.5 阈值下平均预测 34.13 个标签，而真实平均为 25.54 个。逐标签阈值可适应不同概率尺度，但直接在同一验证集优化会过拟合。因此使用双向交叉拟合评估，并按标签支持度将阈值向统一阈值收缩。
+连续 Macro AUC 不依赖二值阈值，可衡量正例排序能力，但不是排行榜主指标。本实验采用“Macro F1 第一，Macro AUC 第二，跨 seed 稳定性第三”的选择规则。阈值仅以 F1 为目标优化；当不同模型的 F1 接近时，再参考 AUC 和标准差。
 
-## 第三章  解决方案
+## 第二章  数据审计与分布发现
 
-整体流程为：数据审计与多标签分层划分；建立随机森林和 k-mer 线性基线；扫描类别权重、正则强度和特征组合；训练 CUDA CNN 作为结构差异明显的候选；进行阈值交叉拟合、标签共现后处理和分数融合；选择主模型；在全部训练数据上重训并生成提交。
+### 2.1 数据规模
 
-最终主模型的关键参数如下：字符级 3 至 5-mer；`min_df=5`；最大词表 120,000；次线性 TF；SGD 逻辑损失；`class_weight="balanced"`；`alpha=5×10^-6`；最大迭代 50；随机种子 42。最终阈值由完整验证集拟合，但模型选择分数来自双向交叉拟合，避免把拟合分数误当作无偏结果。
+训练集包含 113,796 行和 500 个标签，测试集包含 28,450 行。训练标签总体正例率为 5.085%，每条训练序列平均具有 25.42 个标签，中位数为 17。全部 500 个标签在训练集中都有正样本。
 
-## 第四章  特征选择与方法
+表2.1  数据规模与提交要求
 
-### 4.1 统计特征
-
-基础统计包括 20 种标准氨基酸频率和 `log1p` 序列长度。扩展统计加入 400 维二肽频率、疏水/极性/正电/负电/芳香/小残基比例以及 6 个长度分桶，共 433 维。前 50 标签筛选中，扩展统计特征经阈值优化后的 Macro F1 为 0.411159，低于同口径 k-mer 模型的 0.467430。
-
-### 4.2 k-mer 线性模型
-
-3 至 5-mer 比单独 3-mer 在筛选实验中提升约 0.010。LogisticRegression 与 SGD 得分接近，但前者耗时明显更高。第一轮使用按支持度等距抽取的 100 标签重新筛选，30,000 维词表下将正则系数由 5×10^-5 降至 7×10^-6，交叉拟合得分从 0.311967 提升至 0.345899；随后将词表扩展至 120,000 维并采用 `alpha=5×10^-6`，进一步达到 0.372594。
-
-### 4.3 CUDA CNN
-
-为合理使用 GPU，在 E 盘 CUDA 环境中从零训练轻量一维 CNN。模型采用 32 维氨基酸嵌入、核宽 3/7/15 的三路卷积、每路 64 通道、全局最大池化和 500 维输出。序列首尾截断至 1,024，训练 3 个 epoch，使用混合精度和平方根正例权重。该模型不使用外部预训练权重，训练仅需 32.69 秒，但阈值交叉拟合 Macro F1 为 0.184126，表明轻量从零训练不足以学习复杂功能语义。
-
-### 4.4 标签相关性与融合
-
-仅使用训练折标签构建正向条件共现矩阵，分别以 0.02、0.05 和 0.10 权重传播预测分数；同时测试 CNN 权重为 0.05、0.10 和 0.20 的连续分数融合。所有权重仅依据本地交叉拟合选择。阶段 6 的最佳标签共现后处理为 0.316806，最佳 CNN 融合为 0.316245，均低于当时的 30,000 维主模型 0.317516，因此最终提交不采用融合。
-
-## 第五章  数据整理
-
-训练集包含 113,796 行、502 列；测试集包含 28,450 行、2 列；提交应包含 `protein_id` 和 500 个标签列。训练和测试均无缺失值与重复 ID。除 20 种标准氨基酸外还包含少量 B、O、U、X、Z；统计特征将其保留在长度分母中，k-mer 特征直接按字符建模。
-
-验证使用固定 seed 42 的多标签分层划分：90,920 条训练、22,876 条验证。训练/验证 ID 固化到 `artifacts/metrics/splits/seed42/`，所有模型共享同一划分。阈值评估再将验证集随机等分为校准折和留出折，并交换两折执行双向交叉拟合。
-
-## 第六章  探索性数据分析
-
-标签总体密度约 5.08%；每条训练序列平均有 25.42 个标签，中位数 17，最大 273。序列长度均值 553.19，中位数 410，最大 35,375，呈明显右偏。标签频率具有长尾特征，稀有标签与高频标签在最佳阈值和误差模式上差异显著。
-
-已有图表包括标签长尾、训练/测试序列长度和每序列标签数分布。模型误差分析进一步显示，支持度较高的标签通常具有更高 F1，但部分低频标签仍可由强局部 k-mer 模式得到较好识别，说明支持度不是唯一决定因素。
+| 项目 | 数值 | 说明 |
+| --- | ---: | --- |
+| 训练样本 | 113,796 | 含序列与 500 标签 |
+| 测试样本 | 28,450 | 含序列，无标签 |
+| 标签数 | 500 | `label_0` 至 `label_499` |
+| 训练正例率 | 5.085% | 全部样本标签单元格 |
+| 正式提交形状 | 28,450 × 501 | ID 列加 500 标签列 |
 
 ![标签长尾](figures/label_long_tail.png)
 
@@ -68,54 +48,117 @@
 
 ![每序列标签数分布](figures/labels_per_sequence.png)
 
-## 第七章  模型评估
+### 2.2 测试分布偏移
 
-### 7.1 模型对比
+训练与测试 ID 合并后近似覆盖连续区间 `P000000` 至 `P142245`。测试样本集中于 `P112734` 之后，而训练集中同一区间只有 1,062 条带标签样本。进一步比较发现，早段与尾段在标签频率和序列长度上存在差异。由随机 seed 42 得到的普通分层验证集能够保证历史实验可比，但可能高估对线上测试分布的泛化能力。
 
-随机森林基线 Macro F1 为 0.204983；阶段 5 的 3 至 5-mer SGD 与收缩阈值为 0.293085；30,000 维低正则模型达到 0.317516。第一轮进一步扩大词表并降低正则，固定阈值 0.5 已达到 0.362882，逐标签收缩阈值后达到 0.379956，说明模型排序能力与阈值策略均贡献了增益。
+第三次实验保留 `artifacts/metrics/splits/seed42/` 中的固定划分，不覆盖历史指标；同时新增尾段代理验证，用于第三次实验内部的模型选择。尾段指标与历史随机验证指标口径不同，不能直接把绝对分数作为同一排行榜比较，但更接近测试集的 ID 分布。
 
-表7.1  模型性能对比
+## 第三章  方法设计
 
-| 模型 | 标签数 | 评估方式 | Macro F1 |
-| --- | ---: | --- | ---: |
-| 120k 3-5-mer SGD + 收缩阈值 | 500 | 双向交叉拟合 | 0.379956 |
-| 低正则 3-5-mer SGD + 收缩阈值 | 500 | 双向交叉拟合 | 0.317516 |
-| 阶段 5 3-5-mer SGD + 收缩阈值 | 500 | 双向交叉拟合 | 0.293085 |
-| 随机森林基线 | 500 | 固定验证、阈值 0.5 | 0.204983 |
-| CUDA CNN + 收缩阈值 | 500 | 双向交叉拟合 | 0.184126 |
+### 3.1 k-mer TF-IDF 与 SGD
 
-![模型对比](figures/model_comparison.png)
+字符级 3 至 5-mer 能表示局部氨基酸模式，并自然支持不同长度的序列。TF-IDF 通过降低常见片段的权重、提高区分性片段的权重形成高维稀疏表示。最终向量器使用 `min_df=5`、最大词表 120,000 和次线性词频。
 
-### 7.2 阈值策略
+每个标签训练一个 SGD 逻辑分类器。模型使用 `class_weight="balanced"`、正则系数 `alpha=5×10^-6`、最大迭代 50 和 seed 42。为提高对测试分布的适应性，ID 位于 `P112734` 之后的带标签训练样本权重设为 2，其余样本权重为 1。
 
-在未参与阈值选择的留出折上，固定 0.5、统一阈值、逐标签阈值和逐标签收缩阈值的 Macro F1 分别为 0.365663、0.372351、0.380334 和 0.381480。双向交叉拟合结果为 0.379956。五个阈值二分 seed 的细网格均值为 0.380168、标准差为 0.000541，表明收缩阈值收益稳定。
+### 3.2 稀疏余弦 KNN 标签迁移
 
-表7.2  阈值策略对比
+SGD 擅长从大量 k-mer 特征中学习全局线性边界，但序列相似的蛋白质往往共享部分功能标签。第三次实验增加基于同一 TF-IDF 空间的余弦近邻预测：每个查询样本选择 20 个最近训练样本，将余弦相似度平方后作为权重，对邻居标签求加权平均。
 
-| 阈值策略 | 校准折 Macro F1 | 留出折 Macro F1 | 留出预测正例率 |
-| --- | ---: | ---: | ---: |
-| 固定 0.5 | 0.359727 | 0.365663 | 6.827% |
-| 统一阈值 | 0.367392 | 0.372351 | 4.876% |
-| 逐标签阈值 | 0.387097 | 0.380334 | 5.821% |
-| 逐标签收缩阈值 | 0.384958 | 0.381480 | 5.846% |
+KNN 不使用外部数据库，其知识完全来自竞赛训练集。尾段 OOF 计算时，待评估尾段样本不会出现在自身的近邻训练集合中，避免标签泄漏。
 
-![阈值对比](figures/threshold_comparison.png)
+### 3.3 F1 阈值与支持度收缩
 
-固定 0.5 平均预测 34.13 个标签，统一阈值降低至 24.38 个，逐标签收缩阈值为 29.23 个，已明显接近真实均值 25.54。
+对每个标签在 0.02 至 0.98 的候选网格上搜索 F1 最优阈值。低支持度标签的最优阈值对划分敏感，因此将逐标签阈值向全局阈值收缩。若标签支持度为 n、收缩强度为 s，则标签阈值权重为 n / (n + s)。最终稳定性实验选择 s=10，全量尾段拟合得到的全局阈值为 0.12。
 
-![标签数量诊断](figures/label_count_diagnostic.png)
+阈值泛化性能通过双向交叉拟合计算：一半样本拟合阈值并预测另一半，再交换两折。最终模型选择重复使用 seed 17、31、42、73 和 101，按五次 Macro F1 均值排序。
 
-### 7.3 误差分析
+## 第四章  第三次实验过程
 
-长尾标签 F1 波动较大，主要错误来自概率校准不稳定、局部序列模式不足以确定功能，以及一个蛋白质可能同时属于多个相关功能。外部预训练蛋白语言模型可能改善远程依赖和语义表征，但现有规则未明确允许外部权重，因此本项目没有使用。
+### 4.1 尾段权重与特征容量
 
-![支持度与 F1](figures/support_vs_f1.png)
+初始筛选比较尾段权重 1、2、4、8。按早期 AUC 辅助口径，较大的权重在单次划分中有波动，但多 seed 稳定性更支持权重 2。随后将词表从 120,000 扩展到 200,000，并尝试把 3-mer 与 4 至 5-mer 分块建模，两种方案均未形成稳定提升，因此最终保留单一 120,000 词表。
 
-## 第八章  数据分析发现与结论
+表4.1  尾段代理实验的代表性结果
 
-第一，在本数据规模上，稀疏 k-mer 线性模型优于低维统计特征和轻量从零 CNN，且训练成本可控。第二，类别平衡虽然提高稀有标签召回，却造成明显过预测，必须配合阈值校准。第三，统一阈值已能获得显著提升，逐标签阈值进一步改善 Macro F1；支持度收缩使该收益在交叉拟合中保持稳定。第四，简单标签共现传播和弱 CNN 融合未带来收益，说明不同模型之间的分数尺度和误差结构需要更精细的校准。
+| 方案 | Cross fit Macro F1 | 连续 Macro AUC | 结论 |
+| --- | ---: | ---: | --- |
+| 120k 词表，尾段权重 2 | 0.311563 | 0.803188 | 保留作为 SGD 主模型 |
+| 200k 词表，尾段权重 2 | 0.315226 | 0.805665 | 计算增大，收益不稳定 |
+| 分块 3-mer 与 4-5-mer | 0.313217 | 0.801092 | 未超过单一词表 |
 
-最终主模型为 120,000 维 3 至 5-mer TF-IDF + balanced SGD (`alpha=5×10^-6`) + 逐标签收缩阈值。500 标签双向交叉拟合 Macro F1 为 0.379956。系统已在全部 113,796 条训练数据上重训，并生成完整测试提交与元数据。当前剩余人工事项包括竞赛平台上传与线上分数回填，以及继续验证更大或分块 k-mer 词表能否带来第二轮增益。
+### 4.2 SGD 与 KNN 融合
+
+完整 500 标签尾段 OOF 显示，SGD 与 KNN 的误差具有互补性。在旧的 AUC 导向比较中，50% SGD 与 50% KNN 的连续 Macro AUC 为 0.811565，交叉拟合 Macro F1 为 0.316007。纯 KNN 的交叉拟合 Macro F1 可达到 0.321946，但连续 AUC 只有 0.794971，说明少量 SGD 分数有助于保持排序质量。
+
+在明确排行榜采用 Macro F1 后，实验重新扫描 SGD 权重 0% 至 50% 和阈值收缩强度。五 seed 稳定性结果最终选择 10% SGD 与 90% KNN，Macro F1 均值 0.321517，连续 Macro AUC 0.815045。该组合的 F1 与纯 KNN 接近，同时显著提高 AUC，因此更适合作为最终稳健方案。
+
+![F1 与 AUC 融合权衡](figures/iteration3_f1_auc_tradeoff.png)
+
+表4.2  F1 稳定性筛选前列组合
+
+| SGD 权重 | KNN 权重 | 收缩强度 | 五 seed Macro F1 均值 | 标准差 | 连续 Macro AUC |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 10% | 90% | 10 | 0.321517 | 0.002432 | 0.815045 |
+| 10% | 90% | 15 | 0.321396 | 0.002366 | 0.815045 |
+| 20% | 80% | 5 | 0.321290 | 0.002234 | 0.814409 |
+| 0% | 100% | 10 | 0.321078 | 0.001261 | 0.794971 |
+
+![五 seed F1 稳定性](figures/iteration3_seed_stability.png)
+
+## 第五章  最终模型与正式提交
+
+### 5.1 最终配置
+
+表5.1  最终训练配置
+
+| 模块 | 最终设置 |
+| --- | --- |
+| 特征 | 3 至 5-mer TF-IDF，120,000 维，`min_df=5` |
+| SGD | balanced，`alpha=5×10^-6`，尾段权重 2 |
+| KNN | 20 邻居，余弦相似度平方加权 |
+| 融合 | SGD 10%，KNN 90% |
+| 阈值 | 逐标签 F1 网格搜索，收缩强度 10 |
+| 全局阈值 | 0.12 |
+| 随机种子 | 模型 seed 42；阈值稳定性 5 seeds |
+
+全量特征矩阵包含 113,796 × 120,000 的训练稀疏矩阵和 28,450 × 120,000 的测试稀疏矩阵。训练矩阵非零元素数为 111,774,787，测试矩阵非零元素数为 28,081,159。特征构建耗时约 198.59 秒，500 标签 SGD 拟合与推理约 1,802.13 秒，测试集 KNN 推理约 1,166.06 秒。
+
+### 5.2 提交验证
+
+正式提交位于 `artifacts/submissions/EXP-20260926-045-iteration3-final-f1-primary/submit_template_v1.csv`。项目验证器和独立检查均通过。
+
+表5.2  正式提交检查结果
+
+| 检查项 | 结果 |
+| --- | --- |
+| 行数 | 28,450，通过 |
+| 列数 | 501，通过 |
+| 测试 ID 顺序 | 与 `data/test.csv` 完全一致 |
+| 标签值 | 仅包含整数 0 和 1 |
+| 空值 | 0 |
+| 标签列数 | 500 |
+| 预测正例率 | 11.637% |
+| 平均预测标签数 | 58.19 |
+
+预测标签数高于训练集均值 25.42，原因是尾段代理验证中 F1 最优阈值偏低，且 KNN 会对相似邻居共享的多个标签给出中等分数。该结果由严格的尾段交叉拟合选择，而不是手工修改。线上得分回传后，应优先检查预测密度是否与测试集真实标签密度匹配，并据此决定是否提高阈值收缩或增加预测标签数约束。
+
+## 第六章  结果讨论
+
+第一，随机验证与测试分布代理解决的是不同问题。历史固定 seed 42 结果用于不同迭代的可比性，尾段 OOF 用于第三次实验的线上泛化选择。两种分数不应直接混为同一验证排行榜。
+
+第二，Macro F1 与 AUC 可以兼顾，但优先级必须明确。AUC 高不保证阈值后的 F1 高；纯 KNN 在 F1 上有竞争力，但排序能力明显较低。最终 10% SGD 融合在不牺牲 F1 的情况下提高 AUC，是本轮最符合竞赛目标的折中。
+
+第三，低支持度标签是主要不确定性来源。逐标签阈值能提高拟合 F1，但也容易受少量正例影响。支持度收缩和多 seed 复核降低了这种偶然性，仍不能完全替代线上反馈。
+
+第四，简单扩大词表并未稳定提分。当前收益主要来自验证分布设计、近邻标签迁移和 F1 阈值，而不是单纯增加特征容量。后续若继续迭代，应优先研究近邻候选过滤、按标签自适应融合和预测密度校准。
+
+## 第七章  结论
+
+第三次实验围绕排行榜 Macro F1 重新校准了训练和选择流程。最终方案不使用外部数据或预训练权重，通过尾段分布代理、样本加权、k-mer SGD、序列 KNN 标签迁移、逐标签 F1 阈值和多 seed 稳定性筛选形成完整提交。
+
+本地最重要的最终指标为：五 seed 尾段交叉拟合 Macro F1 均值 0.321517，标准差 0.002432，连续 Macro AUC 0.815045。正式 `submit_template_v1.csv` 已通过全部结构与取值校验，可用于竞赛平台提交。由于本地尾段只有 1,062 条样本，线上 Macro F1 仍是判断分布代理是否有效的最终依据。
 
 ## 参考文献
 
@@ -125,40 +168,14 @@
 
 [3] Radivojac P, Clark W T, Oron T R, et al. A large-scale evaluation of computational protein function prediction[J]. Nature Methods, 2013, 10: 221-227.
 
-[4] Jiang Y, Oron T R, Clark W T, et al. An expanded evaluation of protein function prediction methods shows an improvement in accuracy[J]. Genome Biology, 2016, 17: 184.
+[4] Sechidis K, Tsoumakas G, Vlahavas I. On the stratification of multi-label data[C]//Machine Learning and Knowledge Discovery in Databases. Berlin: Springer, 2011: 145-158.
 
-[5] Zhou N, Jiang Y, Bergquist T R, et al. The CAFA challenge reports improved protein function prediction and new functional annotations for hundreds of genes through experimental screens[J]. Genome Biology, 2019, 20: 244.
+[5] Lipton Z C, Elkan C, Naryanaswamy B. Optimal thresholding of classifiers to maximize F1 measure[C]//Machine Learning and Knowledge Discovery in Databases. Berlin: Springer, 2014: 225-239.
 
-[6] Kulmanov M, Khan M A, Hoehndorf R. DeepGO: predicting protein functions from sequence and interactions using a deep ontology-aware classifier[J]. Bioinformatics, 2018, 34(4): 660-668.
+[6] Bottou L. Large-scale machine learning with stochastic gradient descent[C]//Proceedings of COMPSTAT. Heidelberg: Physica-Verlag, 2010: 177-186.
 
-[7] Kulmanov M, Hoehndorf R. DeepGOPlus: improved protein function prediction from sequence[J]. Bioinformatics, 2020, 36(2): 422-429.
+[7] Salton G, Buckley C. Term-weighting approaches in automatic text retrieval[J]. Information Processing and Management, 1988, 24(5): 513-523.
 
-[8] You R, Yao S, Xiong Y, et al. NetGO: improving large-scale protein function prediction with massive network information[J]. Nucleic Acids Research, 2019, 47(W1): W379-W387.
+[8] Tsoumakas G, Katakis I. Multi-label classification: An overview[J]. International Journal of Data Warehousing and Mining, 2007, 3(3): 1-13.
 
-[9] Gligorijevic V, Renfrew P D, Kosciolek T, et al. Structure-based protein function prediction using graph convolutional networks[J]. Nature Communications, 2021, 12: 3168.
-
-[10] Cao Y, Shen Y. TALE: transformer-based protein function annotation with joint sequence-label embedding[J]. Bioinformatics, 2021, 37(18): 2825-2833.
-
-[11] Elnaggar A, Heinzinger M, Dallago C, et al. ProtTrans: Toward understanding the language of life through self-supervised learning[J]. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2022, 44(10): 7112-7127.
-
-[12] Rives A, Meier J, Sercu T, et al. Biological structure and function emerge from scaling unsupervised learning to 250 million protein sequences[J]. Proceedings of the National Academy of Sciences, 2021, 118(15): e2016239118.
-
-[13] Lin Z, Akin H, Rao R, et al. Evolutionary-scale prediction of atomic-level protein structure with a language model[J]. Science, 2023, 379(6637): 1123-1130.
-
-[14] Breiman L. Random forests[J]. Machine Learning, 2001, 45: 5-32.
-
-[15] Read J, Pfahringer B, Holmes G, Frank E. Classifier chains for multi-label classification[J]. Machine Learning, 2011, 85: 333-359.
-
-[16] Sechidis K, Tsoumakas G, Vlahavas I. On the stratification of multi-label data[C]//Machine Learning and Knowledge Discovery in Databases. Berlin: Springer, 2011: 145-158.
-
-[17] Lipton Z C, Elkan C, Naryanaswamy B. Optimal thresholding of classifiers to maximize F1 measure[C]//Machine Learning and Knowledge Discovery in Databases. Berlin: Springer, 2014: 225-239.
-
-[18] Bottou L. Large-scale machine learning with stochastic gradient descent[C]//Proceedings of COMPSTAT. Heidelberg: Physica-Verlag, 2010: 177-186.
-
-[19] Salton G, Buckley C. Term-weighting approaches in automatic text retrieval[J]. Information Processing & Management, 1988, 24(5): 513-523.
-
-[20] Tsoumakas G, Katakis I. Multi-label classification: An overview[J]. International Journal of Data Warehousing and Mining, 2007, 3(3): 1-13.
-
-[21] Sokolova M, Lapalme G. A systematic analysis of performance measures for classification tasks[J]. Information Processing & Management, 2009, 45(4): 427-437.
-
-[22] Pedregosa F, Varoquaux G, Gramfort A, et al. Scikit-learn: Machine learning in Python[J]. Journal of Machine Learning Research, 2011, 12: 2825-2830.
+[9] Pedregosa F, Varoquaux G, Gramfort A, et al. Scikit-learn: Machine learning in Python[J]. Journal of Machine Learning Research, 2011, 12: 2825-2830.

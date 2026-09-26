@@ -1,0 +1,43 @@
+{
+  "experiment_id": "EXP-20260926-038-iteration3-full-tail-sgd",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv"
+  },
+  "distribution": {
+    "cutoff": 112734,
+    "folds": 2
+  },
+  "selection": {
+    "label_count": 500
+  },
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.000005,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "candidates": [
+    {
+      "name": "tail-weight-2",
+      "tail_weight": 2.0
+    }
+  ],
+  "threshold": 0.5,
+  "thresholds": {
+    "shrinkage": 50
+  },
+  "output_dir": "artifacts/runs/EXP-20260926-038-iteration3-full-tail-sgd",
+  "metrics_prefix": "artifacts/metrics/EXP-20260926-038-iteration3-full-tail-sgd"
+}

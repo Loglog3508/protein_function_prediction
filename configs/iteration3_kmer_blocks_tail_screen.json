@@ -1,0 +1,58 @@
+{
+  "experiment_id": "EXP-20260926-034-iteration3-kmer-blocks-tail-screen",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv"
+  },
+  "distribution": {
+    "cutoff": 112734,
+    "folds": 2
+  },
+  "selection": {
+    "label_count": 100
+  },
+  "features": {
+    "type": "kmer_tfidf_blocks",
+    "blocks": [
+      {
+        "name": "kmer3",
+        "k_min": 3,
+        "k_max": 3,
+        "min_df": 5,
+        "max_features": 15000,
+        "sublinear_tf": true,
+        "weight": 0.7071067811865476
+      },
+      {
+        "name": "kmer45",
+        "k_min": 4,
+        "k_max": 5,
+        "min_df": 5,
+        "max_features": 105000,
+        "sublinear_tf": true,
+        "weight": 0.7071067811865476
+      }
+    ]
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.000005,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "candidates": [
+    {
+      "name": "tail-weight-2",
+      "tail_weight": 2.0
+    }
+  ],
+  "threshold": 0.5,
+  "thresholds": {
+    "shrinkage": 25
+  },
+  "output_dir": "artifacts/runs/EXP-20260926-034-iteration3-kmer-blocks-tail-screen",
+  "metrics_prefix": "artifacts/metrics/EXP-20260926-034-iteration3-kmer-blocks-tail-screen"
+}

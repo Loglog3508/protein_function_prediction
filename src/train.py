@@ -20,6 +20,7 @@ from sklearn.model_selection import train_test_split
 from .config import load_config
 from .data import label_columns, load_training_data
 from .features import (
+    build_kmer_block_vectorizer,
     build_kmer_vectorizer,
     extract_composition_features,
     extract_sequence_statistics,
@@ -51,11 +52,20 @@ def fit_label_models(
     progress_every: int | None = None,
     retain_models: bool = True,
     timing_stats: dict[str, float] | None = None,
+    training_sample_weight: np.ndarray | None = None,
 ) -> tuple[list[object], np.ndarray]:
     """Fit one binary model per label and return continuous positive scores."""
     training_target = np.asarray(training_target)
     if training_target.ndim != 2:
         raise ValueError("training_target must be two-dimensional")
+    if training_sample_weight is not None:
+        training_sample_weight = np.asarray(training_sample_weight, dtype=np.float64)
+        if training_sample_weight.shape != (training_target.shape[0],):
+            raise ValueError("training sample weights must match training rows")
+        if not np.isfinite(training_sample_weight).all() or (
+            training_sample_weight < 0
+        ).any():
+            raise ValueError("training sample weights must be finite and non-negative")
     model_type = model_config["type"]
     if model_type not in {"random_forest", "sgd", "logistic_regression"}:
         raise ValueError("unsupported model type")
@@ -106,7 +116,7 @@ def fit_label_models(
                 solver="liblinear",
             )
         fit_started = time.perf_counter()
-        model.fit(training_features, target)
+        model.fit(training_features, target, sample_weight=training_sample_weight)
         fit_seconds += time.perf_counter() - fit_started
         positive_index = int(np.flatnonzero(model.classes_ == 1)[0])
         inference_started = time.perf_counter()
@@ -190,15 +200,22 @@ def _build_feature_matrices(training, validation, feature_config: dict):
             **_matrix_resources(validation_features, "validation"),
         }
         return training_features, validation_features, resources, None
-    if feature_type not in {"kmer_tfidf", "kmer_tfidf_statistics"}:
+    if feature_type not in {
+        "kmer_tfidf",
+        "kmer_tfidf_statistics",
+        "kmer_tfidf_blocks",
+    }:
         raise ValueError(f"unsupported feature type: {feature_type}")
-    vectorizer = build_kmer_vectorizer(
-        k_min=feature_config["k_min"],
-        k_max=feature_config["k_max"],
-        min_df=feature_config["min_df"],
-        max_features=feature_config.get("max_features"),
-        sublinear_tf=feature_config.get("sublinear_tf", True),
-    )
+    if feature_type == "kmer_tfidf_blocks":
+        vectorizer = build_kmer_block_vectorizer(feature_config["blocks"])
+    else:
+        vectorizer = build_kmer_vectorizer(
+            k_min=feature_config["k_min"],
+            k_max=feature_config["k_max"],
+            min_df=feature_config["min_df"],
+            max_features=feature_config.get("max_features"),
+            sublinear_tf=feature_config.get("sublinear_tf", True),
+        )
     training_features = vectorizer.fit_transform(training["sequence"])
     validation_features = vectorizer.transform(validation["sequence"])
     if feature_type == "kmer_tfidf_statistics":
@@ -222,11 +239,21 @@ def _build_feature_matrices(training, validation, feature_config: dict):
         validation_features
     ):
         raise RuntimeError("k-mer feature matrices must remain sparse")
+    vocabulary_size = (
+        vectorizer.vocabulary_size
+        if feature_type == "kmer_tfidf_blocks"
+        else len(vectorizer.vocabulary_)
+    )
     resources = {
         "sparse": True,
-        "vocabulary_size": len(vectorizer.vocabulary_),
+        "vocabulary_size": vocabulary_size,
+        "block_vocabulary_sizes": (
+            vectorizer.block_vocabulary_sizes
+            if feature_type == "kmer_tfidf_blocks"
+            else None
+        ),
         "statistics_dimensions": (
-            training_features.shape[1] - len(vectorizer.vocabulary_)
+            training_features.shape[1] - vocabulary_size
             if feature_type == "kmer_tfidf_statistics"
             else 0
         ),
