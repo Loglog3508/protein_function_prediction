@@ -1,0 +1,35 @@
+{
+  "experiment_id": "EXP-20260928-049-iteration4-gpu-standalone-f1",
+  "objective": "Diagnostic Macro F1 sweep without production eligibility",
+  "diagnostic_only": true,
+  "minimum_auc": 0.0,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "best": {
+    "candidate": "baseline",
+    "gpu_source": "none",
+    "gpu_weight": 0.0,
+    "shrinkage": 10.0,
+    "mean_crossfit_macro_f1": 0.2355063547745318,
+    "std_crossfit_macro_f1": 0.0017728182203239828,
+    "min_crossfit_macro_f1": 0.23375510318366902,
+    "continuous_macro_auc": 0.7727018773024692,
+    "mean_predicted_positive_rate": 0.1058436911487759,
+    "seed_count": 5,
+    "auc_eligible": true
+  },
+  "target_f1_reached": false,
+  "outputs": {
+    "leaderboard": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-049-iteration4-gpu-standalone-f1-leaderboard.csv",
+    "seed_results": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-049-iteration4-gpu-standalone-f1-seed-results.csv",
+    "best_scores": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\runs\\EXP-20260928-049-iteration4-gpu-standalone-f1\\best-scores.npz",
+    "thresholds": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-049-iteration4-gpu-standalone-f1-thresholds.json"
+  }
+}

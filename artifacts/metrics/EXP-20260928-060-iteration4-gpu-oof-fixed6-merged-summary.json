@@ -1,0 +1,15 @@
+{
+  "reference_scores": "artifacts/runs/EXP-20260928-054-iteration4-rebuild-anchor-f1/best-scores.npz",
+  "fold_scores": [
+    "artifacts/runs/EXP-20260928-058-iteration4-gpu-oof-fixed6-fold0/scores.npz",
+    "artifacts/runs/EXP-20260928-059-iteration4-gpu-oof-fixed6-fold1/scores.npz"
+  ],
+  "fold_rows": [
+    529,
+    533
+  ],
+  "validation_rows": 1062,
+  "label_count": 500,
+  "unique_validation_ids": 1062,
+  "output": "artifacts\\runs\\EXP-20260928-060-iteration4-gpu-oof-fixed6-merged\\scores.npz"
+}

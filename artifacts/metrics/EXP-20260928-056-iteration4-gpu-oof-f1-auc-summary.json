@@ -1,0 +1,34 @@
+{
+  "experiment_id": "EXP-20260928-056-iteration4-gpu-oof-f1-auc",
+  "objective": "Macro F1 primary under a hard continuous Macro AUC gate",
+  "minimum_auc": 0.8150451732223777,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "best": {
+    "candidate": "gpu-oof-tail-weight-2-gpu-0.200",
+    "gpu_source": "gpu-oof-tail-weight-2",
+    "gpu_weight": 0.2,
+    "shrinkage": 5.0,
+    "mean_crossfit_macro_f1": 0.3255437189341125,
+    "std_crossfit_macro_f1": 0.0017532783837517323,
+    "min_crossfit_macro_f1": 0.32279564394637483,
+    "continuous_macro_auc": 0.8364889373697662,
+    "mean_predicted_positive_rate": 0.09626779661016949,
+    "seed_count": 5,
+    "auc_eligible": true
+  },
+  "target_f1_reached": false,
+  "outputs": {
+    "leaderboard": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-056-iteration4-gpu-oof-f1-auc-leaderboard.csv",
+    "seed_results": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-056-iteration4-gpu-oof-f1-auc-seed-results.csv",
+    "best_scores": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\runs\\EXP-20260928-056-iteration4-gpu-oof-f1-auc\\best-scores.npz",
+    "thresholds": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-056-iteration4-gpu-oof-f1-auc-thresholds.json"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "experiment_id": "EXP-20260928-048-iteration4-gpu-tail-asl-lowpos",
+  "seed": 42,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1536,
+    "embedding_dim": 64,
+    "channels": 128,
+    "kernels": [
+      3,
+      7,
+      15,
+      31
+    ],
+    "pooling": "max_mean",
+    "dropout": 0.15,
+    "use_sequence_statistics": true,
+    "statistics_hidden": 128
+  },
+  "training": {
+    "epochs": 10,
+    "batch_size": 48,
+    "learning_rate": 0.0006,
+    "weight_decay": 0.01,
+    "max_positive_weight": 3.0,
+    "checkpoint_metric": "macro_auc",
+    "loss": {
+      "name": "asymmetric_bce",
+      "gamma_positive": 0.0,
+      "gamma_negative": 2.0,
+      "probability_clip": 0.05
+    },
+    "amp": true,
+    "require_cuda": true
+  },
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_rows": 112734,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "checkpoint_metric": "macro_auc",
+  "checkpoint_score": 0.7727018773024692,
+  "macro_f1": 0.22193416324188206,
+  "validation_macro_auc": 0.7727018773024692,
+  "true_positive_rate": 0.05916572504708098,
+  "predicted_positive_rate": 0.08193032015065914,
+  "encoding_seconds": 0.46040369999991526,
+  "train_and_validation_seconds": 1203.3929092000003,
+  "history": [
+    {
+      "epoch": 1,
+      "training_loss": 0.13551993332051807,
+      "validation_macro_f1_at_0.5": 0.15133665438304592,
+      "validation_macro_auc": 0.7244598438139777,
+      "validation_predicted_positive_rate": 0.07692655367231638
+    },
+    {
+      "epoch": 2,
+      "training_loss": 0.12848744585462168,
+      "validation_macro_f1_at_0.5": 0.18373482884171172,
+      "validation_macro_auc": 0.7452660130857286,
+      "validation_predicted_positive_rate": 0.07738983050847457
+    },
+    {
+      "epoch": 3,
+      "training_loss": 0.1247652880460828,
+      "validation_macro_f1_at_0.5": 0.21224232813588942,
+      "validation_macro_auc": 0.7635863225556924,
+      "validation_predicted_positive_rate": 0.0888436911487759
+    },
+    {
+      "epoch": 4,
+      "training_loss": 0.12184563418971743,
+      "validation_macro_f1_at_0.5": 0.21085439453822555,
+      "validation_macro_auc": 0.7666320036456407,
+      "validation_predicted_positive_rate": 0.09489077212806027
+    },
+    {
+      "epoch": 5,
+      "training_loss": 0.11961368825969666,
+      "validation_macro_f1_at_0.5": 0.21954683457862398,
+      "validation_macro_auc": 0.7679085449392473,
+      "validation_predicted_positive_rate": 0.0895969868173258
+    },
+    {
+      "epoch": 6,
+      "training_loss": 0.11782873547491483,
+      "validation_macro_f1_at_0.5": 0.22193416324188206,
+      "validation_macro_auc": 0.7727018773024692,
+      "validation_predicted_positive_rate": 0.08193032015065914
+    },
+    {
+      "epoch": 7,
+      "training_loss": 0.11628748956873225,
+      "validation_macro_f1_at_0.5": 0.206421183146426,
+      "validation_macro_auc": 0.766454979731145,
+      "validation_predicted_positive_rate": 0.08684934086629002
+    },
+    {
+      "epoch": 8,
+      "training_loss": 0.11494493530892191,
+      "validation_macro_f1_at_0.5": 0.21780604766486478,
+      "validation_macro_auc": 0.7621522359195623,
+      "validation_predicted_positive_rate": 0.09661016949152543
+    },
+    {
+      "epoch": 9,
+      "training_loss": 0.11372126900208841,
+      "validation_macro_f1_at_0.5": 0.2204740474318605,
+      "validation_macro_auc": 0.76933367709851,
+      "validation_predicted_positive_rate": 0.08254237288135594
+    },
+    {
+      "epoch": 10,
+      "training_loss": 0.11281077306368878,
+      "validation_macro_f1_at_0.5": 0.2169888485304975,
+      "validation_macro_auc": 0.7681662620207413,
+      "validation_predicted_positive_rate": 0.0946120527306968
+    }
+  ],
+  "scores_sha256": "ffb8ae4c365633000ab2ebf1cef5d609bd543d0b6206e5ac424649ac673cf75f"
+}

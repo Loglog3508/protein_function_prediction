@@ -1,0 +1,117 @@
+{
+  "experiment_id": "EXP-20260928-062-iteration4-gpu-oof-fixed8-fold0",
+  "seed": 43,
+  "data_sha256": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+  "validation_split": {
+    "train_ids": "artifacts/metrics/splits/iteration4_gpu_oof/fold0_train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_gpu_oof/fold0_validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1536,
+    "embedding_dim": 64,
+    "channels": 128,
+    "kernels": [
+      3,
+      7,
+      15,
+      31
+    ],
+    "pooling": "max_mean",
+    "dropout": 0.15,
+    "use_sequence_statistics": true,
+    "statistics_hidden": 128
+  },
+  "training": {
+    "epochs": 8,
+    "batch_size": 48,
+    "learning_rate": 0.0006,
+    "weight_decay": 0.01,
+    "max_positive_weight": 3.0,
+    "sample_weighting": {
+      "cutoff": 112734,
+      "tail_weight": 2.0
+    },
+    "checkpoint_metric": "last_epoch",
+    "loss": {
+      "name": "asymmetric_bce",
+      "gamma_positive": 0.0,
+      "gamma_negative": 2.0,
+      "probability_clip": 0.05
+    },
+    "amp": true,
+    "require_cuda": true
+  },
+  "training_row_weight_mean": 1.0047056674957275,
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_rows": 113267,
+  "validation_rows": 529,
+  "label_count": 500,
+  "checkpoint_metric": "last_epoch",
+  "checkpoint_score": 0.7605946618063085,
+  "macro_f1": 0.2131644511096804,
+  "validation_macro_auc": 0.7605946618063085,
+  "true_positive_rate": 0.05909262759924386,
+  "predicted_positive_rate": 0.0828695652173913,
+  "encoding_seconds": 0.4377491999985068,
+  "train_and_validation_seconds": 1122.9424542999986,
+  "history": [
+    {
+      "epoch": 1,
+      "training_loss": 0.13582939663251783,
+      "validation_macro_f1_at_0.5": 0.15366799957730845,
+      "validation_macro_auc": 0.7209961026984892,
+      "validation_predicted_positive_rate": 0.06930434782608695
+    },
+    {
+      "epoch": 2,
+      "training_loss": 0.12892387760607,
+      "validation_macro_f1_at_0.5": 0.1927418058164123,
+      "validation_macro_auc": 0.7502522851857866,
+      "validation_predicted_positive_rate": 0.07722873345935728
+    },
+    {
+      "epoch": 3,
+      "training_loss": 0.12525736994831732,
+      "validation_macro_f1_at_0.5": 0.21513343055249784,
+      "validation_macro_auc": 0.7630936754529407,
+      "validation_predicted_positive_rate": 0.08508884688090737
+    },
+    {
+      "epoch": 4,
+      "training_loss": 0.12253765867756321,
+      "validation_macro_f1_at_0.5": 0.20907462085671843,
+      "validation_macro_auc": 0.7593731650927137,
+      "validation_predicted_positive_rate": 0.08269943289224953
+    },
+    {
+      "epoch": 5,
+      "training_loss": 0.12031082651667703,
+      "validation_macro_f1_at_0.5": 0.2278036155907015,
+      "validation_macro_auc": 0.7510256485622593,
+      "validation_predicted_positive_rate": 0.08822306238185255
+    },
+    {
+      "epoch": 6,
+      "training_loss": 0.11843808637242662,
+      "validation_macro_f1_at_0.5": 0.22484201155667477,
+      "validation_macro_auc": 0.7645103720848021,
+      "validation_predicted_positive_rate": 0.08985255198487713
+    },
+    {
+      "epoch": 7,
+      "training_loss": 0.11692366347750793,
+      "validation_macro_f1_at_0.5": 0.22329877453985356,
+      "validation_macro_auc": 0.7627795245154092,
+      "validation_predicted_positive_rate": 0.09161814744801512
+    },
+    {
+      "epoch": 8,
+      "training_loss": 0.11574754707377564,
+      "validation_macro_f1_at_0.5": 0.2131644511096804,
+      "validation_macro_auc": 0.7605946618063085,
+      "validation_predicted_positive_rate": 0.0828695652173913
+    }
+  ],
+  "scores_sha256": "0f09e55ee256596cbe07bbf967e707b2021275079c218fffbb46f0c49404de0c"
+}

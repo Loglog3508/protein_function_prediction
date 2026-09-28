@@ -1,0 +1,30 @@
+{
+  "experiment_id": "EXP-20260928-054-iteration4-rebuild-anchor-f1",
+  "objective": "Macro F1 primary; continuous Macro AUC secondary",
+  "validation_rows": 1062,
+  "label_count": 500,
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "best": {
+    "candidate": "primary-0.10",
+    "primary_weight": 0.1,
+    "shrinkage": 10.0,
+    "mean_crossfit_macro_f1": 0.32148415219607557,
+    "std_crossfit_macro_f1": 0.002359199939669991,
+    "min_crossfit_macro_f1": 0.3190843617771747,
+    "continuous_macro_auc": 0.8149906781702994,
+    "mean_predicted_positive_rate": 0.09925235404896422,
+    "seed_count": 5
+  },
+  "outputs": {
+    "leaderboard": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-054-iteration4-rebuild-anchor-f1-leaderboard.csv",
+    "seed_results": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-054-iteration4-rebuild-anchor-f1-seed-results.csv",
+    "best_scores": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\runs\\EXP-20260928-054-iteration4-rebuild-anchor-f1\\best-scores.npz",
+    "thresholds": "E:\\git\\protein_function_prediction\\protein_function_prediction\\artifacts\\metrics\\EXP-20260928-054-iteration4-rebuild-anchor-f1-thresholds.json"
+  }
+}

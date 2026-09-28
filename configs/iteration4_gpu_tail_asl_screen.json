@@ -1,0 +1,41 @@
+{
+  "experiment_id": "EXP-20260928-047-iteration4-gpu-tail-asl-screen",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv",
+    "max_labels": null
+  },
+  "split": {
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+  },
+  "model": {
+    "max_length": 1536,
+    "embedding_dim": 64,
+    "channels": 128,
+    "kernels": [3, 7, 15, 31],
+    "pooling": "max_mean",
+    "dropout": 0.15,
+    "use_sequence_statistics": true,
+    "statistics_hidden": 128
+  },
+  "training": {
+    "epochs": 16,
+    "batch_size": 48,
+    "learning_rate": 0.0006,
+    "weight_decay": 0.01,
+    "max_positive_weight": 12.0,
+    "checkpoint_metric": "macro_auc",
+    "loss": {
+      "name": "asymmetric_bce",
+      "gamma_positive": 0.0,
+      "gamma_negative": 2.0,
+      "probability_clip": 0.05
+    },
+    "amp": true,
+    "require_cuda": true
+  },
+  "output_dir": "artifacts/runs/EXP-20260928-047-iteration4-gpu-tail-asl-screen",
+  "metrics_prefix": "artifacts/metrics/EXP-20260928-047-iteration4-gpu-tail-asl-screen"
+}

@@ -12,7 +12,7 @@ import pandas as pd
 
 from .data import label_columns
 from .features import extract_sequence_statistics
-from .metrics import macro_f1_skip_empty
+from .metrics import macro_f1_skip_empty, macro_roc_auc_skip_degenerate
 
 AMINO_ACID_TOKENS = "ACDEFGHIKLMNPQRSTVWYBOUXZ"
 TOKEN_LOOKUP = np.zeros(256, dtype=np.uint8)
@@ -57,6 +57,99 @@ def _seed_everything(seed: int, torch) -> None:
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+
+
+def validate_gpu_training_config(config: dict) -> None:
+    """Validate CUDA and asymmetric-loss settings before allocating a model."""
+    training = config.get("training", {})
+    if training.get("require_cuda", True) is not True:
+        raise ValueError("GPU experiments must set training.require_cuda=true")
+    checkpoint_metric = str(training.get("checkpoint_metric", "macro_f1_at_0.5"))
+    if checkpoint_metric not in {"macro_f1_at_0.5", "macro_auc", "last_epoch"}:
+        raise ValueError(
+            "training.checkpoint_metric must be macro_f1_at_0.5, macro_auc, or last_epoch"
+        )
+    loss = training.get("loss", {"name": "bce"})
+    name = str(loss.get("name", "bce"))
+    if name not in {"bce", "asymmetric_bce"}:
+        raise ValueError("training.loss.name must be bce or asymmetric_bce")
+    for key in ("gamma_positive", "gamma_negative"):
+        value = float(loss.get(key, 0.0))
+        if value < 0:
+            raise ValueError(f"training.loss.{key} must be non-negative")
+    probability_clip = float(loss.get("probability_clip", 0.0))
+    if not 0 <= probability_clip < 1:
+        raise ValueError("training.loss.probability_clip must be in [0, 1)")
+
+
+def asymmetric_bce_loss(
+    logits,
+    targets,
+    positive_weight,
+    *,
+    gamma_positive: float = 0.0,
+    gamma_negative: float = 0.0,
+    probability_clip: float = 0.0,
+    reduction: str = "mean",
+):
+    """Compute an asymmetric BCE loss for sparse multilabel targets."""
+    import torch
+
+    if logits.shape != targets.shape:
+        raise ValueError("logits and targets must have the same shape")
+    if gamma_positive < 0 or gamma_negative < 0:
+        raise ValueError("focusing exponents must be non-negative")
+    if not 0 <= probability_clip < 1:
+        raise ValueError("probability_clip must be in [0, 1)")
+    if reduction not in {"mean", "none"}:
+        raise ValueError("reduction must be mean or none")
+    positive_weight = torch.as_tensor(
+        positive_weight, dtype=logits.dtype, device=logits.device
+    )
+    if positive_weight.ndim == 1:
+        positive_weight = positive_weight.unsqueeze(0)
+    if positive_weight.shape[-1] != logits.shape[-1]:
+        raise ValueError("positive_weight must match the label dimension")
+    probabilities = torch.sigmoid(logits)
+    positive_probability = probabilities.clamp_min(torch.finfo(logits.dtype).eps)
+    negative_probability = (1.0 - probabilities).clamp_min(
+        torch.finfo(logits.dtype).eps
+    )
+    if probability_clip:
+        negative_probability = (negative_probability + probability_clip).clamp(max=1.0)
+    positive_focus = (1.0 - positive_probability).pow(gamma_positive)
+    negative_focus = (1.0 - negative_probability).pow(gamma_negative)
+    log_likelihood = (
+        targets * positive_weight * positive_focus * positive_probability.log()
+        + (1.0 - targets) * negative_focus * negative_probability.log()
+    )
+    loss = -log_likelihood
+    return loss.mean() if reduction == "mean" else loss
+
+
+def sample_weights_for_ids(protein_ids, weighting: dict | None) -> np.ndarray:
+    """Return per-row weights for the ordered tail distribution."""
+    weights = np.ones(len(protein_ids), dtype=np.float32)
+    if not weighting:
+        return weights
+    cutoff = int(weighting["cutoff"])
+    tail_weight = float(weighting.get("tail_weight", 1.0))
+    if tail_weight <= 0:
+        raise ValueError("training.sample_weighting.tail_weight must be positive")
+    for index, protein_id in enumerate(protein_ids):
+        value = str(protein_id)
+        if len(value) < 2 or value[0] != "P" or not value[1:].isdigit():
+            raise ValueError(f"invalid protein ID: {value}")
+        if int(value[1:]) >= cutoff:
+            weights[index] = tail_weight
+    return weights
+
+
+def should_update_checkpoint(
+    *, checkpoint_metric: str, score: float, best_score: float
+) -> bool:
+    """Return whether the current epoch should replace the saved checkpoint."""
+    return checkpoint_metric == "last_epoch" or score > best_score
 
 
 def _build_model(torch, *, label_count: int, model_config: dict):
@@ -168,6 +261,7 @@ def run_gpu_evaluation(
     root = Path(project_root) if project_root is not None else Path.cwd()
     with Path(config_path).open(encoding="utf-8") as handle:
         config = json.load(handle)
+    validate_gpu_training_config(config)
     seed = int(config["seed"])
     _seed_everything(seed, torch)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -218,6 +312,10 @@ def run_gpu_evaluation(
     encoding_seconds = time.perf_counter() - encoding_started
     training_target = training[labels].to_numpy(dtype=np.uint8)
     validation_target = validation[labels].to_numpy(dtype=np.uint8)
+    training_row_weights = sample_weights_for_ids(
+        training["protein_id"].tolist(),
+        config["training"].get("sample_weighting"),
+    )
     use_statistics = bool(config["model"].get("use_sequence_statistics", False))
     training_statistics = (
         extract_sequence_statistics(training["sequence"].tolist())
@@ -246,10 +344,13 @@ def run_gpu_evaluation(
             torch.from_numpy(training_tokens),
             torch.from_numpy(training_statistics),
             torch.from_numpy(training_target),
+            torch.from_numpy(training_row_weights),
         )
     else:
         training_dataset = torch.utils.data.TensorDataset(
-            torch.from_numpy(training_tokens), torch.from_numpy(training_target)
+            torch.from_numpy(training_tokens),
+            torch.from_numpy(training_target),
+            torch.from_numpy(training_row_weights),
         )
     generator = torch.Generator().manual_seed(seed)
     training_loader = torch.utils.data.DataLoader(
@@ -294,9 +395,23 @@ def run_gpu_evaluation(
         1.0,
         float(config["training"].get("max_positive_weight", 8.0)),
     )
-    loss_function = torch.nn.BCEWithLogitsLoss(
-        pos_weight=torch.from_numpy(positive_weight).to(device)
-    )
+    loss_config = config["training"].get("loss", {"name": "bce"})
+    loss_name = str(loss_config.get("name", "bce"))
+    if loss_name == "bce":
+        positive_weight_tensor = torch.from_numpy(positive_weight).to(device)
+        loss_function = lambda logits, target: torch.nn.functional.binary_cross_entropy_with_logits(
+            logits, target, pos_weight=positive_weight_tensor, reduction="none"
+        )
+    else:
+        loss_function = lambda logits, target: asymmetric_bce_loss(
+            logits,
+            target,
+            positive_weight,
+            gamma_positive=float(loss_config.get("gamma_positive", 0.0)),
+            gamma_negative=float(loss_config.get("gamma_negative", 0.0)),
+            probability_clip=float(loss_config.get("probability_clip", 0.0)),
+            reduction="none",
+        )
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=float(config["training"]["learning_rate"]),
@@ -305,7 +420,12 @@ def run_gpu_evaluation(
     amp_enabled = bool(config["training"].get("amp", True) and device.type == "cuda")
     scaler = torch.amp.GradScaler(device.type, enabled=amp_enabled)
     history = []
+    checkpoint_metric = str(
+        config["training"].get("checkpoint_metric", "macro_f1_at_0.5")
+    )
     best_score = -1.0
+    best_macro_f1 = -1.0
+    best_macro_auc = -1.0
     best_state = None
     best_validation_scores = None
     training_started = time.perf_counter()
@@ -314,20 +434,22 @@ def run_gpu_evaluation(
         total_loss = 0.0
         for batch in training_loader:
             if use_statistics:
-                tokens, statistics, target = batch
+                tokens, statistics, target, row_weight = batch
                 statistics = statistics.to(device, non_blocking=True)
             else:
-                tokens, target = batch
+                tokens, target, row_weight = batch
                 statistics = None
             tokens = tokens.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True).float()
+            row_weight = row_weight.to(device, non_blocking=True).float()
             optimizer.zero_grad(set_to_none=True)
             with torch.amp.autocast(
                 device_type=device.type,
                 dtype=torch.float16,
                 enabled=amp_enabled,
             ):
-                loss = loss_function(model(tokens, statistics), target)
+                elementwise_loss = loss_function(model(tokens, statistics), target)
+                loss = (elementwise_loss.mean(dim=1) * row_weight).sum() / row_weight.sum()
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -336,19 +458,30 @@ def run_gpu_evaluation(
             torch, model, validation_loader, device, amp_enabled
         )
         validation_predictions = (validation_scores >= 0.5).astype(np.uint8)
-        score = macro_f1_skip_empty(validation_target, validation_predictions)
+        macro_f1 = macro_f1_skip_empty(validation_target, validation_predictions)
+        macro_auc = macro_roc_auc_skip_degenerate(
+            validation_target, validation_scores
+        )
         epoch_result = {
             "epoch": epoch + 1,
             "training_loss": total_loss / len(training_dataset),
-            "validation_macro_f1_at_0.5": score,
+            "validation_macro_f1_at_0.5": macro_f1,
+            "validation_macro_auc": macro_auc,
             "validation_predicted_positive_rate": float(
                 validation_predictions.mean()
             ),
         }
         history.append(epoch_result)
         print(json.dumps(epoch_result), flush=True)
-        if score > best_score:
+        score = macro_auc if checkpoint_metric in {"macro_auc", "last_epoch"} else macro_f1
+        if should_update_checkpoint(
+            checkpoint_metric=checkpoint_metric,
+            score=score,
+            best_score=best_score,
+        ):
             best_score = score
+            best_macro_f1 = macro_f1
+            best_macro_auc = macro_auc
             best_validation_scores = validation_scores
             best_state = {
                 name: value.detach().cpu().clone()
@@ -384,12 +517,16 @@ def run_gpu_evaluation(
         "validation_split": split_config,
         "model": config["model"],
         "training": config["training"],
+        "training_row_weight_mean": float(training_row_weights.mean()),
         "device": str(device),
         "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
         "train_rows": len(training),
         "validation_rows": len(validation),
         "label_count": len(labels),
-        "macro_f1": best_score,
+        "checkpoint_metric": checkpoint_metric,
+        "checkpoint_score": best_score,
+        "macro_f1": best_macro_f1,
+        "validation_macro_auc": best_macro_auc,
         "true_positive_rate": float(validation_target.mean()),
         "predicted_positive_rate": float((best_validation_scores >= 0.5).mean()),
         "encoding_seconds": encoding_seconds,
