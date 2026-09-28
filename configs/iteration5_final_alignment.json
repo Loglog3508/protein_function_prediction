@@ -1,0 +1,28 @@
+{
+  "experiment_id": "EXP-20260928-069-iteration5-final-alignment",
+  "seed": 42,
+  "data": {"train_path": "data/train.csv", "test_path": "data/test.csv"},
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "neighbors": {"n_neighbors": 20, "query_batch_size": 32, "max_length": 2048, "alignment_power": 2.0},
+  "distribution": {"cutoff": 112734, "tail_weight": 2.0},
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.000005,
+    "average": false,
+    "max_iter": 50,
+    "tol": 0.001,
+    "n_jobs": -1
+  },
+  "thresholds_path": "artifacts/metrics/EXP-20260928-066-iteration5-homology-tail-thresholds.json",
+  "submission_path": "artifacts/submissions/EXP-20260928-069-iteration5-final-alignment/submit_template_v1.csv",
+  "metadata_path": "artifacts/metrics/EXP-20260928-069-iteration5-final-alignment-metadata.json",
+  "scores_path": "artifacts/runs/EXP-20260928-069-iteration5-final-alignment/test-scores.npz"
+}

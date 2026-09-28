@@ -1,0 +1,3 @@
+# Optional alignment-based iteration; install into the active project environment.
+-r requirements.txt
+parasail==1.3.4

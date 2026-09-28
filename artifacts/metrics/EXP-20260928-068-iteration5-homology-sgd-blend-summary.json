@@ -1,0 +1,16 @@
+{
+  "experiment_id": "EXP-20260928-068-iteration5-homology-sgd-blend",
+  "validation_rows": 1062,
+  "label_count": 500,
+  "f1_tolerance": 0.002,
+  "highest_f1": 0.3351783934801672,
+  "selected": {
+    "sgd_weight": 0.1,
+    "shrinkage": 10.0,
+    "mean_crossfit_macro_f1": 0.3351783934801672,
+    "std_crossfit_macro_f1": 0.0008049006706986432,
+    "min_crossfit_macro_f1": 0.3340998337500687,
+    "continuous_macro_auc": 0.8211324963363611,
+    "mean_predicted_positive_rate": 0.09214500941619586
+  }
+}
