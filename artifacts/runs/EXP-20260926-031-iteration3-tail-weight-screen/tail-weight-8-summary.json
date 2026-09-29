@@ -1,0 +1,14 @@
+{
+  "candidate": "tail-weight-8",
+  "tail_weight": 8.0,
+  "alpha": 5e-06,
+  "continuous_macro_auc": 0.8013727860628519,
+  "fixed_binary_macro_auc": 0.7071035867539872,
+  "crossfit_binary_macro_auc": 0.7477296810946167,
+  "fixed_macro_f1": 0.3154653256780243,
+  "crossfit_macro_f1": 0.3140040186554969,
+  "predicted_positive_rate": 0.16772128060263652,
+  "fit_seconds": 781.1270340999472,
+  "inference_seconds": 0.17843240000365768,
+  "elapsed_seconds": 784.5615942000004
+}

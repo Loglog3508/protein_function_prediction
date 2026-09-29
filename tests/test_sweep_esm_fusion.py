@@ -298,3 +298,161 @@ def test_production_fusion_rejects_seed42_validation_cohort():
     }
     with pytest.raises(ValueError, match="iteration4_tail"):
         validate_fusion_config(config)
+
+
+def test_labelwise_weight_search_uses_distinct_sources_and_thresholds():
+    target = np.tile(np.array([[1, 1], [0, 0]], dtype=np.uint8), (20, 1))
+    sources = {
+        "esm": np.tile(np.array([[.4, .5], [.1, .5]]), (20, 1)),
+        "sgd": np.tile(np.array([[.5, .9], [.5, .6]]), (20, 1)),
+        "rollback_auc": np.full((40, 2), .5),
+        "rollback_homology": np.full((40, 2), .5),
+    }
+    config = {
+        "labelwise_weight_search": True,
+        "labelwise_min_support": 5,
+        "thresholds": [.3, .5, .7],
+    }
+    rows, policies = crossfit_label_policies(target, sources, [17], config)
+    selected = policies.query("candidate == 'labelwise_weighted'")
+    assert len(selected) == 4
+    assert set(selected.query("label_index == 0").source) == {"esm"}
+    assert set(selected.query("label_index == 1").source) == {"sgd"}
+    np.testing.assert_allclose(selected.query("label_index == 0").threshold, [.3, .3])
+    np.testing.assert_allclose(selected.query("label_index == 1").threshold, [.7, .7])
+    assert set(selected.policy_scope) == {"labelwise"}
+    assert (rows.query("candidate == 'labelwise_weighted'").macro_f1 == 1).all()
+
+
+def test_labelwise_weight_search_can_choose_quarter_weight_pair():
+    from src.sweep_esm_fusion import _weighted_candidates
+
+    sources = {
+        "esm": np.array([[.2]], dtype=np.float32),
+        "sgd": np.array([[.8]], dtype=np.float32),
+    }
+    candidates = _weighted_candidates(sources)
+    assert len(candidates) == 7
+    np.testing.assert_allclose(candidates["esm@0.25+sgd@0.75"], [[.65]])
+    np.testing.assert_allclose(candidates["esm@0.75+sgd@0.25"], [[.35]])
+    np.testing.assert_allclose(candidates["esm@0.10+sgd@0.90"], [[.74]])
+    np.testing.assert_allclose(candidates["esm@0.90+sgd@0.10"], [[.26]])
+
+
+def test_labelwise_weight_search_includes_sparse_three_source_weights():
+    from src.sweep_esm_fusion import _weighted_candidates
+
+    sources = {
+        "esm": np.array([[.2]], dtype=np.float32),
+        "sgd": np.array([[.8]], dtype=np.float32),
+        "rollback_auc": np.array([[.6]], dtype=np.float32),
+    }
+    candidates = _weighted_candidates(sources)
+    assert len(candidates) == 21
+    np.testing.assert_allclose(
+        candidates["esm@0.50+sgd@0.25+rollback_auc@0.25"], [[.45]]
+    )
+    np.testing.assert_allclose(
+        candidates["esm@0.25+sgd@0.50+rollback_auc@0.25"], [[.6]]
+    )
+
+
+def test_labelwise_weight_search_can_gate_each_label_by_rollback_auc():
+    from src.sweep_esm_fusion import _best_label_policy
+
+    target = np.array([1, 1, 1, 0, 0, 0], dtype=np.uint8)
+    scores = {
+        "rollback_auc": np.array([.9, .8, .2, .7, .1, .05]),
+        "candidate": np.array([.9, .8, .7, .4, .3, .95]),
+    }
+    selected = _best_label_policy(
+        target,
+        scores,
+        np.array([.5]),
+        auc_baseline=scores["rollback_auc"],
+        auc_tolerance=0.0,
+    )
+    assert selected == ("rollback_auc", 0.5)
+
+
+def test_labelwise_auc_gate_runs_with_low_support_labels():
+    target = np.array([[1, 1], [0, 0], [1, 0], [0, 0], [1, 0], [0, 0]], dtype=np.uint8)
+    sources = {
+        "rollback_auc": np.where(target, 0.8, 0.2),
+        "sgd": np.where(target, 0.9, 0.1),
+    }
+    config = {
+        "labelwise_weight_search": True,
+        "labelwise_min_support": 10,
+        "labelwise_auc_gate": True,
+        "labelwise_auc_source": "rollback_auc",
+        "thresholds": [.5],
+    }
+    rows, policies = crossfit_label_policies(target, sources, [17], config)
+    assert not rows.query("candidate == 'labelwise_weighted'").empty
+    assert (policies.query("candidate == 'labelwise_weighted'").source == "rollback_auc").all()
+
+
+def test_labelwise_thresholds_shrink_toward_shared_threshold():
+    from src.sweep_esm_fusion import _shrink_labelwise_thresholds
+
+    np.testing.assert_allclose(
+        _shrink_labelwise_thresholds(
+            np.array([.9, .9]),
+            np.array([1, 10]),
+            np.array([.3, .3]),
+            shrinkage=10,
+        ),
+        [.35454545, .6],
+    )
+
+
+def test_labelwise_weight_search_selects_pair_when_single_sources_fail():
+    target = np.tile(np.array([[1], [1], [0], [0]], dtype=np.uint8), (10, 1))
+    sources = {
+        "esm": np.tile(np.array([[.1], [.9], [.9], [.1]]), (10, 1)),
+        "sgd": np.tile(np.array([[.8], [.4], [.2], [.6]]), (10, 1)),
+    }
+    config = {"labelwise_weight_search": True, "labelwise_min_support": 5, "thresholds": [.5]}
+    rows, policies = crossfit_label_policies(target, sources, [17], config)
+    selected = policies.query("candidate == 'labelwise_weighted'")
+    assert set(selected.source) == {"esm@0.25+sgd@0.75"}
+    assert (rows.query("candidate == 'labelwise_weighted'").macro_f1 == 1).all()
+
+
+def test_low_support_labels_share_one_weight_and_threshold():
+    target = np.zeros((40, 2), dtype=np.uint8)
+    target[[0, 4, 8, 12], 0] = 1
+    target[[1, 5, 9, 13], 1] = 1
+    sources = {
+        "esm": np.column_stack([np.where(target[:, 0], .9, .1), np.full(40, .5)]),
+        "sgd": np.column_stack([np.full(40, .5), np.where(target[:, 1], .9, .1)]),
+    }
+    config = {"labelwise_weight_search": True, "labelwise_min_support": 10, "thresholds": [.3, .5, .7]}
+    _, policies = crossfit_label_policies(target, sources, [17], config)
+    selected = policies.query("candidate == 'labelwise_weighted'")
+    assert set(selected.policy_scope) == {"shared"}
+    assert selected.groupby("selection_fold").source.nunique().eq(1).all()
+    assert selected.groupby("selection_fold").threshold.nunique().eq(1).all()
+
+
+def test_labelwise_weight_search_shares_low_support_policy_and_keeps_fit_fold_isolated():
+    target = np.zeros((20, 2), dtype=np.uint8)
+    target[::2, 0] = 1
+    target[0, 1] = 1
+    sources = {
+        "esm": np.where(target, .9, .1),
+        "rollback_auc": np.where(target, .8, .2),
+    }
+    config = {"labelwise_weight_search": True, "labelwise_min_support": 5, "thresholds": [.3, .5, .7]}
+    _, original = crossfit_label_policies(target, sources, [17], config)
+    _, second = np.array_split(np.random.default_rng(17).permutation(len(target)), 2)
+    changed = target.copy()
+    changed[second] = 1 - changed[second]
+    _, revised = crossfit_label_policies(changed, sources, [17], config)
+    original_fit = original.query("candidate == 'labelwise_weighted' and selection_fold == 1")
+    revised_fit = revised.query("candidate == 'labelwise_weighted' and selection_fold == 1")
+    assert original_fit.policy_scope.tolist() == ["labelwise", "shared"]
+    assert original_fit[["source", "threshold"]].reset_index(drop=True).equals(
+        revised_fit[["source", "threshold"]].reset_index(drop=True)
+    )

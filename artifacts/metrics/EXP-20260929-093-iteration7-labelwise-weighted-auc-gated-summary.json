@@ -1,0 +1,16 @@
+{
+  "experiment_id": "EXP-20260929-093-iteration7-labelwise-weighted-auc-gated",
+  "selected": {
+    "candidate": "adaptive",
+    "mean_crossfit_macro_f1": 0.3242434409979672,
+    "std_crossfit_macro_f1": 0.013719475982240131,
+    "min_crossfit_macro_f1": 0.30161640569206083,
+    "continuous_macro_auc": 0.8281240938209207,
+    "seed_count": 5,
+    "mean_predicted_positive_rate": 0.096169868173258,
+    "auc_complete": true,
+    "eligible": true,
+    "auc_eligible": true
+  },
+  "seed_count": 5
+}

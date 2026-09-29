@@ -1,0 +1,25 @@
+{
+  "experiment_id": "EXP-20260929-095-iteration7-labelwise-weighted-f1-shrunk",
+  "seed": 42,
+  "seeds": [17, 31, 42, 73, 101],
+  "minimum_auc": 0.8280390455031759,
+  "data": {"train_path": "data/train.csv"},
+  "split": {"kind": "iteration4_tail", "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"},
+  "sources": {
+    "esm": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
+    "sgd": "artifacts/runs/EXP-20260929-087-iteration6-rebuild-tail-sgd/tail-weight-2-scores.npz",
+    "rollback_auc": "artifacts/runs/EXP-20260928-065-iteration4-gpu-oof-fixed8-f1-auc/best-scores.npz",
+    "rollback_homology": "artifacts/runs/EXP-20260929-088-iteration6-rebuild-homology-sgd-blend/best-scores.npz"
+  },
+  "new_model": "esm",
+  "rollback_source": "rollback_auc",
+  "zero_weight_source": "rollback_auc",
+  "thresholds": [0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82, 0.84, 0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98],
+  "support_strata": [{"name": "high", "min_support": 100}, {"name": "medium", "min_support": 20, "max_support": 99}, {"name": "low", "max_support": 19}],
+  "independent_label_policies": false,
+  "labelwise_weight_search": true,
+  "labelwise_min_support": 20,
+  "labelwise_threshold_shrinkage": 10.0,
+  "output_dir": "artifacts/runs/EXP-20260929-095-iteration7-labelwise-weighted-f1-shrunk",
+  "metrics_prefix": "artifacts/metrics/EXP-20260929-095-iteration7-labelwise-weighted-f1-shrunk"
+}

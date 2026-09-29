@@ -11,6 +11,7 @@ from typing import Any, Mapping
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from .metrics import macro_f1_skip_empty, macro_roc_auc_skip_degenerate
 from .thresholds import threshold_predictions
@@ -144,6 +145,22 @@ def _candidate_scores(sources: Mapping[str, np.ndarray], config: Mapping[str, An
     return result
 
 
+def _weighted_candidates(sources: Mapping[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """Build sparse one-, two-, and three-source policies from original scores."""
+    result = {name: np.asarray(scores, dtype=np.float32) for name, scores in sources.items()}
+    for left, right in itertools.combinations(sources, 2):
+        for left_weight in (0.10, 0.25, 0.50, 0.75, 0.90):
+            right_weight = 1.0 - left_weight
+            name = f"{left}@{left_weight:.2f}+{right}@{right_weight:.2f}"
+            result[name] = (left_weight * result[left] + right_weight * result[right]).astype(np.float32)
+    for names in itertools.combinations(sources, 3):
+        for dominant in range(3):
+            weights = tuple(0.5 if index == dominant else 0.25 for index in range(3))
+            name = "+".join(f"{source}@{weight:.2f}" for source, weight in zip(names, weights))
+            result[name] = sum((weight * result[source] for source, weight in zip(names, weights))).astype(np.float32)
+    return result
+
+
 def _fit_thresholds(y_true: np.ndarray, scores: np.ndarray, candidates: np.ndarray) -> tuple[np.ndarray, float]:
     thresholds = np.full(scores.shape[1], 0.5, dtype=np.float32)
     for label_index in range(scores.shape[1]):
@@ -200,12 +217,44 @@ def _label_f1(y_true: np.ndarray, scores: np.ndarray, threshold: float) -> float
     return 2 * tp / denominator if denominator else 0.0
 
 
+def _shrink_labelwise_thresholds(
+    thresholds: np.ndarray,
+    supports: np.ndarray,
+    shared_thresholds: np.ndarray,
+    *,
+    shrinkage: float,
+) -> np.ndarray:
+    """Shrink label-specific thresholds toward shared policies by support."""
+    if shrinkage < 0:
+        raise ValueError("shrinkage must be non-negative")
+    thresholds = np.asarray(thresholds, dtype=np.float32)
+    supports = np.asarray(supports, dtype=np.float32)
+    shared_thresholds = np.asarray(shared_thresholds, dtype=np.float32)
+    if thresholds.ndim != 1 or supports.shape != thresholds.shape or shared_thresholds.shape != thresholds.shape:
+        raise ValueError("thresholds, supports, and shared thresholds must have equal one-dimensional shapes")
+    weight = supports / (supports + float(shrinkage)) if shrinkage else np.ones_like(supports)
+    return (weight * thresholds + (1.0 - weight) * shared_thresholds).astype(np.float32)
+
+
 def _best_label_policy(
-    y_true: np.ndarray, scores: Mapping[str, np.ndarray], candidates: np.ndarray
+    y_true: np.ndarray,
+    scores: Mapping[str, np.ndarray],
+    candidates: np.ndarray,
+    *,
+    auc_baseline: np.ndarray | None = None,
+    auc_baseline_name: str = "rollback_auc",
+    auc_tolerance: float = 0.0,
 ) -> tuple[str, float]:
     best_key = (-1.0, -float("inf"))
     best = (next(iter(scores)), 0.5)
+    baseline_auc = None
+    if auc_baseline is not None and np.unique(y_true).size == 2:
+        baseline_auc = float(roc_auc_score(y_true, auc_baseline))
     for name, values in scores.items():
+        if baseline_auc is not None and name != auc_baseline_name:
+            candidate_auc = float(roc_auc_score(y_true, values))
+            if candidate_auc + float(auc_tolerance) < baseline_auc:
+                continue
         for threshold in candidates:
             value = float(threshold)
             key = (_label_f1(y_true, values, value), -abs(value - 0.5))
@@ -346,7 +395,22 @@ def crossfit_label_policies(
             raise ValueError("score source shape does not match target")
         arrays[name] = values
     candidates = _candidate_scores(arrays, config)
+    weighted_candidates = _weighted_candidates(arrays) if config.get("labelwise_weight_search", False) else None
     threshold_values = _threshold_candidates(config)
+    labelwise_min_support = int(config.get("labelwise_min_support", 20))
+    if weighted_candidates is not None and labelwise_min_support < 1:
+        raise ValueError("labelwise_min_support must be positive")
+    labelwise_threshold_shrinkage = float(config.get("labelwise_threshold_shrinkage", 0.0))
+    if labelwise_threshold_shrinkage < 0:
+        raise ValueError("labelwise_threshold_shrinkage must be non-negative")
+    labelwise_auc_gate = bool(config.get("labelwise_auc_gate", False))
+    labelwise_auc_source = str(config.get("labelwise_auc_source", "rollback_auc"))
+    labelwise_auc_tolerance = float(config.get("labelwise_auc_tolerance", 0.0))
+    if labelwise_auc_gate:
+        if weighted_candidates is None or labelwise_auc_source not in weighted_candidates:
+            raise ValueError("labelwise_auc_source must be present for the AUC gate")
+        if labelwise_auc_tolerance < 0:
+            raise ValueError("labelwise_auc_tolerance must be non-negative")
     independent_enabled = bool(config.get("independent_label_policies", False))
     if independent_enabled:
         if "independent_min_support" not in config:
@@ -452,6 +516,82 @@ def crossfit_label_policies(
                         "threshold": float(adaptive_thresholds[label_index]),
                     }
                 )
+            if weighted_candidates is not None:
+                weighted_thresholds, weighted_names = _adaptive_policy(
+                    fit_target, weighted_candidates, selection_index, threshold_values, shared_groups
+                )
+                weighted_names = np.asarray(weighted_names, dtype=object)
+                support = fit_target.sum(axis=0).astype(int)
+                independent = support >= labelwise_min_support
+                if labelwise_auc_gate:
+                    shared_baseline_thresholds = _fit_group_thresholds(
+                        fit_target,
+                        weighted_candidates[labelwise_auc_source][selection_index],
+                        threshold_values,
+                        shared_groups,
+                    )
+                    low_support_labels = np.flatnonzero(~independent)
+                    weighted_names[low_support_labels] = labelwise_auc_source
+                    weighted_thresholds[low_support_labels] = shared_baseline_thresholds[low_support_labels]
+                for label_index in np.flatnonzero(independent):
+                    policy_kwargs = {}
+                    if labelwise_auc_gate:
+                        policy_kwargs = {
+                            "auc_baseline": weighted_candidates[labelwise_auc_source][selection_index, label_index],
+                            "auc_baseline_name": labelwise_auc_source,
+                            "auc_tolerance": labelwise_auc_tolerance,
+                        }
+                    name, threshold = _best_label_policy(
+                        fit_target[:, label_index],
+                        {name: values[selection_index, label_index] for name, values in weighted_candidates.items()},
+                        threshold_values,
+                        **policy_kwargs,
+                    )
+                    weighted_names[label_index] = name
+                    weighted_thresholds[label_index] = threshold
+                weighted_scores = np.column_stack(
+                    [weighted_candidates[name][:, label_index] for label_index, name in enumerate(weighted_names)]
+                )
+                shared_thresholds = _fit_group_thresholds(
+                    fit_target,
+                    weighted_scores[selection_index],
+                    threshold_values,
+                    shared_groups,
+                )
+                weighted_thresholds = _shrink_labelwise_thresholds(
+                    weighted_thresholds,
+                    support,
+                    shared_thresholds,
+                    shrinkage=labelwise_threshold_shrinkage,
+                )
+                weighted_predictions = threshold_predictions(weighted_scores[evaluation_index], weighted_thresholds)
+                result_rows.append(
+                    {
+                        "candidate": "labelwise_weighted",
+                        "seed": int(seed),
+                        "selection_fold": 1 - fold,
+                        "evaluation_fold": fold,
+                        "macro_f1": _safe_f1(y_true[evaluation_index], weighted_predictions),
+                        "continuous_macro_auc": _safe_auc(y_true[evaluation_index], weighted_scores[evaluation_index]),
+                        "predicted_positive_rate": float(weighted_predictions.mean()),
+                    }
+                )
+                for label_index, name in enumerate(weighted_names):
+                    policy_rows.append(
+                        {
+                            "candidate": "labelwise_weighted",
+                            "seed": int(seed),
+                            "selection_fold": 1 - fold,
+                            "label_index": label_index,
+                            "label": target_labels[label_index] if target_labels else f"label_{label_index}",
+                            "support": int(support[label_index]),
+                            "support_stratum": str(shared_groups[label_index]),
+                            "policy_scope": "labelwise" if independent[label_index] else "shared",
+                            "stability_passed": False,
+                            "source": name,
+                            "threshold": float(weighted_thresholds[label_index]),
+                        }
+                    )
     return pd.DataFrame(result_rows), pd.DataFrame(policy_rows)
 
 
