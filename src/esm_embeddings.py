@@ -100,18 +100,38 @@ class TransformersEsmBackend:
         self.torch = torch
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model_name = str(config.get("model_name", DEFAULT_MODEL_NAME))
+        if self.model_name != DEFAULT_MODEL_NAME:
+            raise ValueError(
+                f"model_name must be canonical {DEFAULT_MODEL_NAME!r}; "
+                "use local_model_path for an offline checkpoint"
+            )
+        self.local_model_path = config.get("local_model_path")
+        load_path = str(self.local_model_path or self.model_name)
+        resolved_revision = None
+        resolved_sha256 = None
+        if self.local_model_path:
+            resolved_revision, resolved_sha256 = _resolve_local_model_identity(
+                config, self.local_model_path
+            )
         self.token_max_length = int(
             config.get("token_max_length", DEFAULT_WINDOW_SIZE + 2)
         )
         self.use_amp = bool(config.get("amp", True)) and self.device.type == "cuda"
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            load_path, local_files_only=bool(self.local_model_path)
+        )
         self.model = AutoModel.from_pretrained(
-            self.model_name, add_pooling_layer=False
+            load_path,
+            add_pooling_layer=False,
+            local_files_only=bool(self.local_model_path),
         ).eval().to(self.device)
         self.hidden_size = int(self.model.config.hidden_size)
         self.model_revision = str(
-            getattr(self.model.config, "_commit_hash", None) or "unresolved"
+            resolved_revision
+            or getattr(self.model.config, "_commit_hash", None)
+            or "unresolved"
         )
+        self.model_sha256 = resolved_sha256
         self.library_versions = {
             "torch": str(torch.__version__),
             "transformers": str(transformers.__version__),
@@ -179,6 +199,59 @@ def _source_digest(protein_ids: Iterable[str], sequences: Iterable[str]) -> str:
         digest.update(str(sequence).encode("utf-8"))
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise ValueError(f"cannot read local model weights: {path}") from exc
+    return digest.hexdigest()
+
+
+def _resolve_local_model_identity(
+    config: dict[str, Any], model_dir: str | Path
+) -> tuple[str, str]:
+    """Resolve and verify a local checkpoint's revision and weight hash."""
+    model_dir = Path(model_dir)
+    manifest_value = config.get("local_model_manifest")
+    manifest_path = Path(manifest_value) if manifest_value else model_dir / "model_manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            f"local model manifest is required and must be valid: {manifest_path}"
+        ) from exc
+    if not isinstance(manifest, dict):
+        raise ValueError(f"local model manifest must be an object: {manifest_path}")
+    weights_name = str(manifest.get("weights_file", "model.safetensors"))
+    weights_path = model_dir / weights_name
+    actual_sha256 = _sha256_file(weights_path)
+    manifest_sha256 = str(manifest.get("model_sha256", ""))
+    if manifest_sha256 != actual_sha256:
+        raise ValueError(
+            "local model weight hash mismatch: "
+            f"manifest {manifest_sha256!r}, actual {actual_sha256!r}"
+        )
+    expected_sha256 = config.get("model_sha256")
+    if expected_sha256 is not None and str(expected_sha256) != actual_sha256:
+        raise ValueError(
+            "configured model_sha256 mismatch: "
+            f"expected {expected_sha256!r}, actual {actual_sha256!r}"
+        )
+    resolved_revision = str(manifest.get("model_revision", ""))
+    if not resolved_revision:
+        raise ValueError(f"local model manifest is missing model_revision: {manifest_path}")
+    expected_revision = config.get("model_revision")
+    if expected_revision is not None and str(expected_revision) != resolved_revision:
+        raise ValueError(
+            "configured model_revision mismatch: "
+            f"expected {expected_revision!r}, actual {resolved_revision!r}"
+        )
+    return resolved_revision, actual_sha256
 
 
 _PART_NAME = re.compile(r"^part-(\d{5})$")
@@ -314,8 +387,9 @@ def extract_embedding_shards(
         backend = TransformersEsmBackend(settings)
     model_name = str(getattr(backend, "model_name", settings.get("model_name")))
     model_revision = str(
-        settings.get("model_revision")
-        or getattr(backend, "model_revision", "test-backend")
+        getattr(backend, "model_revision", None)
+        or settings.get("model_revision")
+        or "test-backend"
     )
     storage_dtype = str(settings.get("storage_dtype", "float16"))
     runtime_metadata = {
@@ -325,8 +399,11 @@ def extract_embedding_shards(
     library_versions = getattr(backend, "library_versions", None)
     if isinstance(library_versions, dict):
         runtime_metadata["library_versions"] = dict(library_versions)
-    if settings.get("model_sha256") is not None:
-        runtime_metadata["model_sha256"] = str(settings["model_sha256"])
+    resolved_sha256 = getattr(backend, "model_sha256", None)
+    if resolved_sha256 is None and settings.get("model_sha256") is not None:
+        resolved_sha256 = str(settings["model_sha256"])
+    if resolved_sha256 is not None:
+        runtime_metadata["model_sha256"] = str(resolved_sha256)
     outputs: list[str] = []
     for source, path_value in (
         ("train", settings["train_path"]),

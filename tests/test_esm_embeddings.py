@@ -1,9 +1,11 @@
+import hashlib
 import json
 import numpy as np
 import pandas as pd
 import pytest
 
 from src.esm_embeddings import (
+    _resolve_local_model_identity,
     extract_embedding_shards,
     pool_residue_embeddings,
     sequence_windows,
@@ -256,3 +258,49 @@ def test_extractor_rejects_stale_row_part_metadata(tmp_path):
 
     with pytest.raises(ValueError, match="model_name"):
         extract_embedding_shards(config, backend=FakeBackend())
+
+
+def test_local_model_identity_rejects_mismatched_configured_hash(tmp_path):
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    weights = model_dir / "model.safetensors"
+    weights.write_bytes(b"local checkpoint")
+    actual_hash = hashlib.sha256(weights.read_bytes()).hexdigest()
+    (model_dir / "model_manifest.json").write_text(
+        json.dumps(
+            {
+                "model_revision": "rev-1",
+                "model_sha256": actual_hash,
+                "weights_file": "model.safetensors",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="model_sha256 mismatch"):
+        _resolve_local_model_identity(
+            {"model_sha256": "0" * 64, "model_revision": "rev-1"}, model_dir
+        )
+
+
+def test_local_model_identity_rejects_mismatched_configured_revision(tmp_path):
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    weights = model_dir / "model.safetensors"
+    weights.write_bytes(b"local checkpoint")
+    actual_hash = hashlib.sha256(weights.read_bytes()).hexdigest()
+    (model_dir / "model_manifest.json").write_text(
+        json.dumps(
+            {
+                "model_revision": "resolved-revision",
+                "model_sha256": actual_hash,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="model_revision mismatch"):
+        _resolve_local_model_identity(
+            {"model_sha256": actual_hash, "model_revision": "stale-revision"},
+            model_dir,
+        )
