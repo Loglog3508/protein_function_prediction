@@ -24,7 +24,7 @@
     "label_n_jobs": 8
   },
   "screening": {
-    "label_count": 500,
+    "label_count": 60,
     "validation_size": 0.2,
     "alphas": [0.00001, 0.0001, 0.001, 0.01]
   },

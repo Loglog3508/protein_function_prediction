@@ -11,7 +11,7 @@
   "window_size": 1022,
   "overlap": 128,
   "shard_rows": 256,
-  "batch_size": 8,
+  "batch_size": 16,
   "storage_dtype": "float16",
   "amp": true,
   "require_cuda": true
