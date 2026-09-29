@@ -1,0 +1,21 @@
+{
+  "experiment_id": "EXP-20260929-082-iteration6-esm2-labelwise-full",
+  "seed": 42,
+  "train_rows": 112734,
+  "final_fit_rows": 113796,
+  "validation_rows": 1062,
+  "test_rows": 28450,
+  "label_count": 500,
+  "continuous_validation_macro_auc": 0.7036393721535963,
+  "screening_rows": 12,
+  "selected_support_strata": [
+    "high",
+    "low",
+    "medium"
+  ],
+  "elapsed_seconds": 3208.1740812000025,
+  "outputs": {
+    "scores": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
+    "screen": "artifacts/metrics/EXP-20260929-082-iteration6-esm2-labelwise-full-screen.csv"
+  }
+}

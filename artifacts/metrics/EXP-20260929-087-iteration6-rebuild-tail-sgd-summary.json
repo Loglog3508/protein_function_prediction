@@ -1,0 +1,47 @@
+{
+  "experiment_id": "EXP-20260929-087-iteration6-rebuild-tail-sgd",
+  "cutoff": 112734,
+  "folds": 2,
+  "early_rows": 112734,
+  "tail_rows": 1062,
+  "selected_label_count": 500,
+  "selection": "evenly_spaced_support_ranks",
+  "feature_seconds": 115.03641359999892,
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 120000,
+    "block_vocabulary_sizes": null,
+    "statistics_dimensions": 0,
+    "train_shape": [
+      112734,
+      120000
+    ],
+    "train_nnz": 111058455,
+    "train_bytes": 888918580,
+    "validation_shape": [
+      1062,
+      120000
+    ],
+    "validation_nnz": 716681,
+    "validation_bytes": 5737700
+  },
+  "best_candidate": {
+    "candidate": "tail-weight-2",
+    "tail_weight": 2.0,
+    "alpha": 5e-06,
+    "continuous_macro_auc": 0.8067375074905216,
+    "fixed_binary_macro_auc": 0.7083455622681627,
+    "crossfit_binary_macro_auc": 0.7468843751602015,
+    "fixed_macro_f1": 0.30725163096939484,
+    "crossfit_macro_f1": 0.3096548107415216,
+    "predicted_positive_rate": 0.17595668549905838,
+    "fit_seconds": 3064.4965785999993,
+    "inference_seconds": 0.7275222000971553,
+    "elapsed_seconds": 3079.581922899997
+  },
+  "outputs": {
+    "labels": "artifacts/metrics/EXP-20260929-087-iteration6-rebuild-tail-sgd-labels.csv",
+    "leaderboard": "artifacts/metrics/EXP-20260929-087-iteration6-rebuild-tail-sgd-leaderboard.csv",
+    "run_dir": "artifacts/runs/EXP-20260929-087-iteration6-rebuild-tail-sgd"
+  }
+}
