@@ -145,6 +145,12 @@ def fit_labelwise_scores(
     base_model = _model_config(config)
     strata = _support_strata(config)
     stratum_names, _ = _label_strata(target, config)
+    fixed_strata = config.get("fixed_label_strata")
+    if fixed_strata is not None:
+        valid_names = {stratum["name"] for stratum in strata}
+        if len(fixed_strata) != target.shape[1] or not set(fixed_strata).issubset(valid_names):
+            raise ValueError("fixed_label_strata must match configured labels and strata")
+        stratum_names = list(fixed_strata)
 
     selected_by_name: dict[str, dict[str, Any]] = {}
     selected = config.get("selected_regularization")
@@ -308,13 +314,13 @@ def _load_embedding(path: Path, expected_source: str) -> tuple[np.ndarray, np.nd
     return embeddings, ids
 
 
-def _validate_seed42_split(
+def _validate_canonical_split(
     config: dict[str, Any],
     root: Path,
     train_ids: list[str],
     validation_ids: list[str],
 ) -> None:
-    """Require canonical seed-42 IDs for production CLI runs.
+    """Require the ordered iteration-4 tail cohort for production runs.
 
     Small unit and synthetic runs may opt into explicit fixture data with
     ``fixture_mode``. Production configs remain strict by default.
@@ -323,15 +329,30 @@ def _validate_seed42_split(
         return
     if int(config.get("seed", -1)) != 42:
         raise ValueError("production label-wise runs require seed 42")
-    canonical_root = root / "artifacts" / "metrics" / "splits" / "seed42"
+    split = config.get("split", {})
+    if split.get("kind") != "iteration4_tail":
+        raise ValueError("production label-wise runs require iteration4_tail split")
+    canonical_root = root / "artifacts" / "metrics" / "splits" / "iteration4_tail"
     canonical_train_path = canonical_root / "train_ids.csv"
     canonical_validation_path = canonical_root / "validation_ids.csv"
+    if (
+        _resolve(root, split["train_ids"]).resolve() != canonical_train_path.resolve()
+        or _resolve(root, split["validation_ids"]).resolve() != canonical_validation_path.resolve()
+    ):
+        raise ValueError("configured split paths must reference canonical iteration4_tail files")
     if not canonical_train_path.exists() or not canonical_validation_path.exists():
-        raise ValueError("canonical seed-42 split files are required for production runs")
+        raise ValueError("canonical iteration4_tail split files are required for production runs")
     canonical_train = pd.read_csv(canonical_train_path)["protein_id"].astype(str).tolist()
     canonical_validation = pd.read_csv(canonical_validation_path)["protein_id"].astype(str).tolist()
     if train_ids != canonical_train or validation_ids != canonical_validation:
-        raise ValueError("configured split IDs do not match canonical seed-42 IDs")
+        raise ValueError("configured split IDs do not match canonical iteration4_tail IDs")
+    if (
+        len(canonical_train) != 112734
+        or len(canonical_validation) != 1062
+        or any(int(value.removeprefix("P")) >= 112734 for value in canonical_train)
+        or any(int(value.removeprefix("P")) < 112734 for value in canonical_validation)
+    ):
+        raise ValueError("canonical iteration4_tail cohort must contain 112734 early and 1062 tail rows")
 
 
 def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = None) -> Path:
@@ -347,17 +368,20 @@ def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = 
         path.exists() for path in (summary_path, screen_path, score_path)
     ):
         raise FileExistsError("experiment outputs already exist; use a new experiment ID")
-    run_dir.mkdir(parents=True)
-    metrics_prefix.parent.mkdir(parents=True, exist_ok=True)
-
     data = config["data"]
     train_frame = pd.read_csv(_resolve(root, data["train_path"]))
+    if train_frame["protein_id"].duplicated().any():
+        raise ValueError("training protein IDs must be unique")
     labels = label_columns(train_frame.columns)
+    if not bool(config.get("fixture_mode", False)) and (
+        len(train_frame) != 113796 or len(labels) != 500
+    ):
+        raise ValueError("production training data must have 113796 rows and 500 labels")
     train_ids = pd.read_csv(_resolve(root, config["split"]["train_ids"]))["protein_id"].astype(str).tolist()
     validation_ids = pd.read_csv(_resolve(root, config["split"]["validation_ids"]))["protein_id"].astype(str).tolist()
     if len(set(train_ids)) != len(train_ids) or len(set(validation_ids)) != len(validation_ids):
         raise ValueError("fixed split IDs must be unique")
-    _validate_seed42_split(config, root, train_ids, validation_ids)
+    _validate_canonical_split(config, root, train_ids, validation_ids)
     train_embeddings, embedding_ids = _load_embedding(
         _resolve(root, config["embeddings"]["train"]), "train"
     )
@@ -373,6 +397,8 @@ def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = 
     train_y = train_frame.set_index("protein_id").loc[train_ids, labels].to_numpy(dtype=np.uint8)
 
     screen = screen_regularization_by_support(train_x, train_y, config, label_names=labels)
+    run_dir.mkdir(parents=True)
+    metrics_prefix.parent.mkdir(parents=True, exist_ok=True)
     screen.to_csv(screen_path, index=False)
     selected = {
         str(row.stratum): {"alpha": float(row.alpha)}
@@ -380,19 +406,25 @@ def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = 
     }
     fit_config = dict(config)
     fit_config["selected_regularization"] = selected
+    fit_config["fixed_label_strata"] = _label_strata(train_y, config)[0]
     started = time.perf_counter()
     test_scores = None
     test_ids = None
-    eval_x = validation_x
+    validation_scores = fit_labelwise_scores(train_x, train_y, validation_x, fit_config)
     if config["embeddings"].get("test"):
         test_embeddings, test_ids = _load_embedding(
             _resolve(root, config["embeddings"]["test"]), "test"
         )
-        eval_x = np.vstack([validation_x, test_embeddings])
-    all_scores = fit_labelwise_scores(train_x, train_y, eval_x, fit_config)
-    validation_scores = all_scores[: len(validation_x)]
-    if test_ids is not None:
-        test_scores = all_scores[len(validation_x) :]
+        full_ids = train_frame["protein_id"].astype(str).tolist()
+        full_x = train_embeddings[[positions[value] for value in full_ids]]
+        full_y = train_frame[labels].to_numpy(dtype=np.uint8)
+        test_scores = fit_labelwise_scores(full_x, full_y, test_embeddings, fit_config)
+    if not bool(config.get("fixture_mode", False)) and (
+        validation_scores.shape != (1062, 500)
+        or len(validation_ids) != 1062
+        or (test_scores is not None and test_scores.shape != (len(test_ids), 500))
+    ):
+        raise ValueError("production scores must have iteration4_tail (1062, 500) validation shape")
     payload = {
         "validation_scores": validation_scores.astype(np.float32),
         "validation_ids": np.asarray(validation_ids, dtype=np.str_),
@@ -413,6 +445,7 @@ def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = 
         "experiment_id": config["experiment_id"],
         "seed": int(config.get("seed", 42)),
         "train_rows": len(train_ids),
+        "final_fit_rows": len(train_frame) if test_ids is not None else None,
         "validation_rows": len(validation_ids),
         "test_rows": 0 if test_ids is None else len(test_ids),
         "label_count": len(labels),

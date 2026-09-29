@@ -5,8 +5,9 @@
     "train_path": "data/train.csv"
   },
   "split": {
-    "train_ids": "artifacts/metrics/splits/seed42/train_ids.csv",
-    "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"
+    "kind": "iteration4_tail",
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
   },
   "embeddings": {
     "train": "artifacts/runs/EXP-20260929-080-iteration6-esm2-35m-embeddings/train-embeddings.npz",

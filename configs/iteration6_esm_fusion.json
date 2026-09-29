@@ -4,7 +4,7 @@
   "seeds": [17, 31, 42, 73, 101],
   "minimum_auc": 0.8280390455031759,
   "data": {"train_path": "data/train.csv"},
-  "split": {"validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"},
+  "split": {"kind": "iteration4_tail", "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"},
   "sources": {
     "esm": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
     "sgd": "artifacts/runs/EXP-20260928-067-iteration5-rebuild-tail-sgd/tail-weight-2-scores.npz",

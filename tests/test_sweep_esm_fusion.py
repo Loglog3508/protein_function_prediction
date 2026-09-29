@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ from src.sweep_esm_fusion import (
     crossfit_label_policies,
     rank_policy_results,
     run_fusion,
+    validate_fusion_config,
 )
 
 
@@ -129,6 +131,7 @@ def _cli_fixture(tmp_path, *, duplicate_score_id=False, duplicate_label=False):
         "seeds": [17, 31, 42, 73, 101],
         "minimum_auc": 0.5,
         "diagnostic_only": True,
+        "fixture_mode": True,
         "data": {"train_path": "train.csv"},
         "split": {"validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"},
         "sources": paths,
@@ -272,3 +275,26 @@ def test_cli_does_not_select_when_every_candidate_fails_auc_gate(tmp_path):
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert summary["selected"] is None
     assert not pd.read_csv(tmp_path / "metrics" / "fusion-leaderboard.csv").eligible.any()
+
+
+def test_production_config_binds_esm_and_rollback_to_iteration4_tail():
+    root = Path(__file__).resolve().parents[1]
+    fusion = json.loads((root / "configs" / "iteration6_esm_fusion.json").read_text(encoding="utf-8"))
+    labelwise = json.loads((root / "configs" / "iteration6_esm2_labelwise_full.json").read_text(encoding="utf-8"))
+    expected = "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+    assert fusion["split"]["validation_ids"] == expected
+    assert labelwise["split"]["validation_ids"] == expected
+    assert labelwise["split"]["kind"] == "iteration4_tail"
+    assert fusion["sources"]["esm"] == labelwise["output_dir"] + "/scores.npz"
+    assert "iteration4-gpu-oof-fixed8-f1-auc/best-scores.npz" in fusion["sources"]["rollback_auc"]
+    assert len(pd.read_csv(root / expected)) == 1062
+
+
+def test_production_fusion_rejects_seed42_validation_cohort():
+    config = {
+        "sources": {"esm": "esm.npz", "rollback_auc": "auc.npz", "rollback_homology": "homology.npz"},
+        "seeds": [17, 31, 42, 73, 101],
+        "split": {"kind": "seed42", "validation_ids": "artifacts/metrics/splits/seed42/validation_ids.csv"},
+    }
+    with pytest.raises(ValueError, match="iteration4_tail"):
+        validate_fusion_config(config)

@@ -506,6 +506,11 @@ def validate_fusion_config(config: Mapping[str, Any]) -> None:
         raise ValueError("fusion config must define sources")
     if not {"rollback_auc", "rollback_homology"}.issubset(config["sources"]):
         raise ValueError("production fusion must include rollback_auc and rollback_homology sources")
+    if not bool(config.get("fixture_mode", False)):
+        split = config.get("split", {})
+        canonical = "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+        if split.get("kind") != "iteration4_tail" or Path(split.get("validation_ids", "")).as_posix() != canonical:
+            raise ValueError("production fusion requires canonical iteration4_tail validation IDs")
 
 
 def _resolve(root: Path, value: str | Path) -> Path:
@@ -526,6 +531,15 @@ def _load_target_csv(config: Mapping[str, Any], root: Path, reference: Mapping[s
         raise ValueError("canonical validation IDs must be unique")
     if not np.array_equal(ids, reference_ids):
         raise ValueError("reference score IDs do not match canonical validation IDs and order")
+    if not bool(config.get("fixture_mode", False)):
+        if len(ids) != 1062 or len(labels) != 500:
+            raise ValueError("production fusion requires the 1062-row, 500-label iteration4_tail cohort")
+        try:
+            tail_ids = [int(value.removeprefix("P")) for value in ids]
+        except ValueError as exc:
+            raise ValueError("iteration4_tail protein IDs must use numeric P-prefixed names") from exc
+        if any(value < 112734 for value in tail_ids):
+            raise ValueError("production fusion validation IDs must belong to iteration4_tail")
     train_path = _resolve(root, config["data"]["train_path"])
     with train_path.open(newline="", encoding="utf-8") as handle:
         header = next(csv.reader(handle))
