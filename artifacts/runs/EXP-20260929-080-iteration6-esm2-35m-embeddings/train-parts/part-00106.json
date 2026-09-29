@@ -1,0 +1,23 @@
+{
+  "source": "train",
+  "model_name": "facebook/esm2_t12_35M_UR50D",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "window_size": 1022,
+  "overlap": 128,
+  "shard_rows": 256,
+  "pooling": "length_weighted_mean_plus_max",
+  "dtype": "float16",
+  "row_count": 256,
+  "source_sha256": "1f9b8dcd08d302e25aa1992f7cd56964437b2c73c23b31a0f160e05feca10bda",
+  "python_version": "3.13.2",
+  "numpy_version": "2.2.4",
+  "library_versions": {
+    "torch": "2.9.1+cu126",
+    "transformers": "4.57.6"
+  },
+  "model_sha256": "e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+  "part_index": 106,
+  "row_start": 27136,
+  "row_end": 27392,
+  "feature_width": 960
+}

@@ -1,0 +1,9 @@
+{
+  "experiment_id": "EXP-20260929-080-iteration6-esm2-35m-embeddings",
+  "model_name": "facebook/esm2_t12_35M_UR50D",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "outputs": [
+    "artifacts\\runs\\EXP-20260929-080-iteration6-esm2-35m-embeddings\\train-embeddings.npz",
+    "artifacts\\runs\\EXP-20260929-080-iteration6-esm2-35m-embeddings\\test-embeddings.npz"
+  ]
+}

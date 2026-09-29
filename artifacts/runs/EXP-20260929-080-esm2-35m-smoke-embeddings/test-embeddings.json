@@ -1,0 +1,13 @@
+{
+  "source": "test",
+  "model_name": "artifacts/runs/models/esm2_t12_35M_UR50D",
+  "model_revision": "unresolved",
+  "window_size": 1022,
+  "overlap": 128,
+  "pooling": "length_weighted_mean_plus_max",
+  "dtype": "float16",
+  "row_count": 2,
+  "source_sha256": "57c74e99f03fb9aede70a1afa0e7a13e63e6f5ee1c7d9463cf51dbed2f6aa23e",
+  "feature_width": 960,
+  "python_version": "3.13.2"
+}
