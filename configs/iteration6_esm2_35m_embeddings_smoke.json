@@ -1,0 +1,15 @@
+{
+  "experiment_id": "SMOKE-20260929-esm2-35m-v2",
+  "train_path": "data/train.csv",
+  "test_path": "data/test.csv",
+  "output_dir": "artifacts/runs/SMOKE-20260929-esm2-35m-v2-embeddings",
+  "model_name": "artifacts/runs/models/esm2_t12_35M_UR50D",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "window_size": 1022,
+  "overlap": 128,
+  "batch_size": 2,
+  "storage_dtype": "float16",
+  "amp": true,
+  "require_cuda": true,
+  "max_rows": 2
+}
