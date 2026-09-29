@@ -239,7 +239,11 @@ def screen_regularization_by_support(
     inner_stratum_names, inner_supports = _label_strata(target[inner_train], config)
     label_count = int(screening.get("label_count", target.shape[1]))
     selection = select_support_stratified_labels(
-        pd.DataFrame(target, columns=label_names or [f"label_{i}" for i in range(target.shape[1])]),
+        pd.DataFrame(
+            target[inner_train],
+            columns=label_names
+            or [f"label_{i}" for i in range(target.shape[1])],
+        ),
         min(label_count, target.shape[1]),
     )
     selected_indices = set(selection["label_index"].astype(int).tolist())
@@ -304,6 +308,32 @@ def _load_embedding(path: Path, expected_source: str) -> tuple[np.ndarray, np.nd
     return embeddings, ids
 
 
+def _validate_seed42_split(
+    config: dict[str, Any],
+    root: Path,
+    train_ids: list[str],
+    validation_ids: list[str],
+) -> None:
+    """Require canonical seed-42 IDs for production CLI runs.
+
+    Small unit and synthetic runs may opt into explicit fixture data with
+    ``fixture_mode``. Production configs remain strict by default.
+    """
+    if bool(config.get("fixture_mode", False)):
+        return
+    if int(config.get("seed", -1)) != 42:
+        raise ValueError("production label-wise runs require seed 42")
+    canonical_root = root / "artifacts" / "metrics" / "splits" / "seed42"
+    canonical_train_path = canonical_root / "train_ids.csv"
+    canonical_validation_path = canonical_root / "validation_ids.csv"
+    if not canonical_train_path.exists() or not canonical_validation_path.exists():
+        raise ValueError("canonical seed-42 split files are required for production runs")
+    canonical_train = pd.read_csv(canonical_train_path)["protein_id"].astype(str).tolist()
+    canonical_validation = pd.read_csv(canonical_validation_path)["protein_id"].astype(str).tolist()
+    if train_ids != canonical_train or validation_ids != canonical_validation:
+        raise ValueError("configured split IDs do not match canonical seed-42 IDs")
+
+
 def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = None) -> Path:
     """Run a configured validation/test label-wise score experiment."""
     root = Path(project_root) if project_root is not None else Path.cwd()
@@ -327,6 +357,7 @@ def run_labelwise(config_path: str | Path, *, project_root: str | Path | None = 
     validation_ids = pd.read_csv(_resolve(root, config["split"]["validation_ids"]))["protein_id"].astype(str).tolist()
     if len(set(train_ids)) != len(train_ids) or len(set(validation_ids)) != len(validation_ids):
         raise ValueError("fixed split IDs must be unique")
+    _validate_seed42_split(config, root, train_ids, validation_ids)
     train_embeddings, embedding_ids = _load_embedding(
         _resolve(root, config["embeddings"]["train"]), "train"
     )

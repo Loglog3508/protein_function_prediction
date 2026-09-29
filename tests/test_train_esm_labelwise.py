@@ -7,6 +7,7 @@ import pytest
 from src.train_esm_labelwise import (
     fit_labelwise_scores,
     screen_regularization_by_support,
+    _validate_seed42_split,
 )
 
 
@@ -91,4 +92,50 @@ def test_screening_rejects_nonfinite_features():
             np.array([[0.0], [np.inf]]),
             np.array([[0], [1]], dtype=np.uint8),
             _config(),
+        )
+
+
+def test_screening_representatives_ignore_inner_eval_support(monkeypatch):
+    rng = np.random.default_rng(7)
+    train_x = rng.normal(size=(16, 3)).astype(np.float32)
+    train_y = np.zeros((16, 2), dtype=np.uint8)
+    train_y[:5, 0] = 1
+    train_y[:4, 1] = 1
+    changed = train_y.copy()
+    changed[12:, 1] = 1
+    monkeypatch.setattr(
+        "src.train_esm_labelwise.train_test_split",
+        lambda indices, test_size, random_state: (
+            np.arange(12),
+            np.arange(12, 16),
+        ),
+    )
+    config = _config(
+        screening={"alphas": [0.01, 1.0], "label_count": 1, "validation_size": 0.25},
+        support_strata=[{"name": "all", "min_support": 0}],
+    )
+
+    baseline = screen_regularization_by_support(train_x, train_y, config)
+    result = screen_regularization_by_support(train_x, changed, config)
+
+    pd.testing.assert_frame_equal(baseline, result)
+
+
+def test_production_split_rejects_non_seed42_or_mismatched_ids(tmp_path):
+    canonical = tmp_path / "artifacts" / "metrics" / "splits" / "seed42"
+    canonical.mkdir(parents=True)
+    pd.DataFrame({"protein_id": ["P1", "P2"]}).to_csv(
+        canonical / "train_ids.csv", index=False
+    )
+    pd.DataFrame({"protein_id": ["P3"]}).to_csv(
+        canonical / "validation_ids.csv", index=False
+    )
+
+    with pytest.raises(ValueError, match="seed 42"):
+        _validate_seed42_split(
+            {"seed": 7}, tmp_path, ["P1", "P2"], ["P3"]
+        )
+    with pytest.raises(ValueError, match="canonical seed-42"):
+        _validate_seed42_split(
+            {"seed": 42}, tmp_path, ["P2", "P1"], ["P3"]
         )
