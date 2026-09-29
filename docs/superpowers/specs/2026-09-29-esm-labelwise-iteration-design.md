@@ -19,14 +19,15 @@ replace the current rollback submission.
   is the first stage; LoRA or partial fine-tuning is conditional on a successful
   frozen-feature result.
 - The selected pretrained model is `facebook/esm2_t12_35M_UR50D`, which has a
-  480-dimensional hidden state and a 1,026-token positional limit.
+  480-dimensional hidden state and a 1,026-position limit.
 
 ## Architecture
 
 ### 1. Shared ESM representation
 
 Load ESM-2 once on the GPU and encode every unique protein sequence. Residue
-tokens are split into overlapping windows of at most 1,024 residues. For each
+tokens are split into overlapping windows of at most 1,022 residues, reserving
+positions for tokenizer-added special tokens. For each
 window, mean-pool non-special-token representations. Aggregate multiple windows
 with a length-weighted mean and element-wise maximum, then concatenate both
 vectors into a 960-dimensional protein representation.
