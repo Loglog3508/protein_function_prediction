@@ -6,6 +6,7 @@ import json
 import platform
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import joblib
@@ -69,29 +70,36 @@ def fit_label_models(
     model_type = model_config["type"]
     if model_type not in {"random_forest", "sgd", "logistic_regression"}:
         raise ValueError("unsupported model type")
+    label_n_jobs = model_config.get("label_n_jobs", 1)
+    if isinstance(label_n_jobs, bool) or not isinstance(label_n_jobs, int) or label_n_jobs < 1:
+        raise ValueError("label_n_jobs must be a positive integer")
+    model_n_jobs = 1 if label_n_jobs > 1 else model_config.get("n_jobs", 1)
     models: list[object] = []
     fit_seconds = 0.0
     inference_seconds = 0.0
     scores = np.zeros(
         (evaluation_features.shape[0], training_target.shape[1]), dtype=np.float32
     )
-    for label_index in range(training_target.shape[1]):
+    def fit_one_label(label_index: int):
         target = training_target[:, label_index]
         classes = np.unique(target)
         if len(classes) == 1:
             value = int(classes[0])
-            if retain_models:
-                models.append({"constant": value})
             inference_started = time.perf_counter()
-            scores[:, label_index] = value
-            inference_seconds += time.perf_counter() - inference_started
-            continue
+            score = np.float32(value)
+            return (
+                {"constant": value} if retain_models else None,
+                score,
+                0.0,
+                time.perf_counter() - inference_started,
+                False,
+            )
         if model_type == "random_forest":
             model = RandomForestClassifier(
                 n_estimators=model_config["n_estimators"],
                 max_depth=model_config.get("max_depth"),
                 class_weight=_class_weight(model_config),
-                n_jobs=model_config.get("n_jobs", 1),
+                n_jobs=model_n_jobs,
                 random_state=seed,
             )
         elif model_type == "sgd":
@@ -103,7 +111,7 @@ def fit_label_models(
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-3),
                 random_state=seed,
-                n_jobs=model_config.get("n_jobs", 1),
+                n_jobs=model_n_jobs,
             )
         else:
             model = LogisticRegression(
@@ -112,25 +120,45 @@ def fit_label_models(
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-4),
                 random_state=seed,
-                n_jobs=model_config.get("n_jobs", 1),
+                n_jobs=model_n_jobs,
                 solver="liblinear",
             )
         fit_started = time.perf_counter()
         model.fit(training_features, target, sample_weight=training_sample_weight)
-        fit_seconds += time.perf_counter() - fit_started
+        label_fit_seconds = time.perf_counter() - fit_started
         positive_index = int(np.flatnonzero(model.classes_ == 1)[0])
         inference_started = time.perf_counter()
-        scores[:, label_index] = model.predict_proba(evaluation_features)[
-            :, positive_index
-        ]
-        inference_seconds += time.perf_counter() - inference_started
-        if retain_models:
-            models.append(model)
-        if progress_every and (label_index + 1) % progress_every == 0:
-            print(
-                f"trained {label_index + 1}/{training_target.shape[1]} labels",
-                flush=True,
-            )
+        label_scores = model.predict_proba(evaluation_features)[:, positive_index]
+        label_inference_seconds = time.perf_counter() - inference_started
+        return (
+            model if retain_models else None,
+            label_scores,
+            label_fit_seconds,
+            label_inference_seconds,
+            True,
+        )
+
+    def collect(results):
+        nonlocal fit_seconds, inference_seconds
+        for label_index, (model, label_scores, label_fit, label_inference, trained) in enumerate(results):
+            assignment_started = time.perf_counter()
+            scores[:, label_index] = label_scores
+            fit_seconds += label_fit
+            inference_seconds += label_inference + time.perf_counter() - assignment_started
+            if retain_models:
+                models.append(model)
+            if trained and progress_every and (label_index + 1) % progress_every == 0:
+                print(
+                    f"trained {label_index + 1}/{training_target.shape[1]} labels",
+                    flush=True,
+                )
+
+    indices = range(training_target.shape[1])
+    if label_n_jobs == 1:
+        collect(map(fit_one_label, indices))
+    else:
+        with ThreadPoolExecutor(max_workers=label_n_jobs) as executor:
+            collect(executor.map(fit_one_label, indices))
     if timing_stats is not None:
         timing_stats.update(
             fit_seconds=fit_seconds,
