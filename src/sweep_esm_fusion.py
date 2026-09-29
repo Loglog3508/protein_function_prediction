@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import itertools
 import json
 from pathlib import Path
@@ -30,7 +31,8 @@ def _parse_payload(payload: Any, *, name: str) -> tuple[np.ndarray | None, list[
     if isinstance(payload, Mapping):
         ids_value = next((payload[k] for k in ("protein_ids", "validation_ids", "ids") if k in payload), None)
         labels_value = next((payload[k] for k in ("label_columns", "labels", "label_names") if k in payload), None)
-        scores = np.asarray(_field(payload, "scores", "validation_scores", "score_matrix"), dtype=np.float32)
+        score_key = payload.get("score_key")
+        scores = np.asarray(payload[score_key] if score_key else _field(payload, "scores", "validation_scores", "score_matrix"), dtype=np.float32)
         ids = None if ids_value is None else np.asarray(ids_value, dtype=str)
         labels = None if labels_value is None else [str(value) for value in labels_value]
     elif isinstance(payload, tuple) and len(payload) == 3:
@@ -183,6 +185,87 @@ def _safe_f1(y_true: np.ndarray, predictions: np.ndarray) -> float:
     return macro_f1_skip_empty(y_true, predictions) if y_true.any() else 0.0
 
 
+def _safe_auc(y_true: np.ndarray, scores: np.ndarray) -> float:
+    support = y_true.sum(axis=0)
+    if not ((support > 0) & (support < len(y_true))).any():
+        return float("nan")
+    return macro_roc_auc_skip_degenerate(y_true, scores)
+
+
+def _label_f1(y_true: np.ndarray, scores: np.ndarray, threshold: float) -> float:
+    true = y_true.astype(bool)
+    predicted = scores >= threshold
+    tp = int((true & predicted).sum())
+    denominator = 2 * tp + int((~true & predicted).sum()) + int((true & ~predicted).sum())
+    return 2 * tp / denominator if denominator else 0.0
+
+
+def _best_label_policy(
+    y_true: np.ndarray, scores: Mapping[str, np.ndarray], candidates: np.ndarray
+) -> tuple[str, float]:
+    best_key = (-1.0, -float("inf"))
+    best = (next(iter(scores)), 0.5)
+    for name, values in scores.items():
+        for threshold in candidates:
+            value = float(threshold)
+            key = (_label_f1(y_true, values, value), -abs(value - 0.5))
+            if key > best_key:
+                best_key = key
+                best = (name, value)
+    return best
+
+
+def _stable_independent_labels(
+    fit_target: np.ndarray,
+    fit_sources: Mapping[str, np.ndarray],
+    candidates: np.ndarray,
+    groups: np.ndarray,
+    config: Mapping[str, Any],
+) -> np.ndarray:
+    """Gate label-specific policies using only inner splits of the fit half."""
+    allowed = np.zeros(fit_target.shape[1], dtype=bool)
+    minimum = int(config["independent_min_support"])
+    tolerance = float(config["stability_tolerance"])
+    stability_seeds = tuple(int(seed) for seed in config.get("stability_seeds", DEFAULT_SEEDS))
+    if len(fit_target) < 4 or not stability_seeds:
+        return allowed
+    for label in np.flatnonzero(fit_target.sum(axis=0) >= minimum):
+        differences = []
+        for seed in stability_seeds:
+            first, second = np.array_split(np.random.default_rng(seed).permutation(len(fit_target)), 2)
+            for inner_fit, inner_eval in ((first, second), (second, first)):
+                if not fit_target[inner_fit, label].any():
+                    differences.append(0.0)
+                    continue
+                group_labels = np.flatnonzero(groups == groups[label])
+                shared_threshold, shared_names = _adaptive_policy(
+                    fit_target[inner_fit][:, group_labels],
+                    {name: values[:, group_labels] for name, values in fit_sources.items()},
+                    inner_fit,
+                    candidates,
+                    np.repeat("shared", len(group_labels)),
+                )
+                local = int(np.flatnonzero(group_labels == label)[0])
+                independent_name, independent_threshold = _best_label_policy(
+                    fit_target[inner_fit, label],
+                    {name: values[inner_fit, label] for name, values in fit_sources.items()},
+                    candidates,
+                )
+                independent_f1 = _label_f1(
+                    fit_target[inner_eval, label],
+                    fit_sources[independent_name][inner_eval, label],
+                    independent_threshold,
+                )
+                shared_f1 = _label_f1(
+                    fit_target[inner_eval, label],
+                    fit_sources[shared_names[local]][inner_eval, label],
+                    float(shared_threshold[local]),
+                )
+                differences.append(independent_f1 - shared_f1)
+        allowed[label] = bool(differences) and min(differences) > 0 and max(differences) - min(differences) <= tolerance
+    return allowed
+
+
 def _adaptive_policy(
     fit_target: np.ndarray,
     candidates: Mapping[str, np.ndarray],
@@ -282,15 +365,17 @@ def crossfit_label_policies(
         first, second = np.array_split(rng.permutation(len(y_true)), 2)
         for fold, (selection_index, evaluation_index) in enumerate(((first, second), (second, first))):
             fit_target = y_true[selection_index]
-            _, groups = _support_groups(fit_target, config)
-            independent_min = int(config.get("independent_min_support", 100))
-            allow_independent = independent_enabled
-            if allow_independent:
-                independent = fit_target.sum(axis=0) >= independent_min
-                groups = groups.astype(object)
-                groups[independent] = np.asarray([f"label_{i}" for i in np.flatnonzero(independent)], dtype=object)
+            _, shared_groups = _support_groups(fit_target, config)
             for candidate_name, candidate_scores in candidates.items():
                 fit_scores = candidate_scores[selection_index]
+                stable = (
+                    _stable_independent_labels(
+                        fit_target, {candidate_name: fit_scores}, threshold_values, shared_groups, config
+                    )
+                    if independent_enabled else np.zeros(fit_target.shape[1], dtype=bool)
+                )
+                groups = shared_groups.copy()
+                groups[stable] = [f"label_{index}" for index in np.flatnonzero(stable)]
                 thresholds = _fit_group_thresholds(fit_target, fit_scores, threshold_values, groups)
                 predictions = threshold_predictions(candidate_scores[evaluation_index], thresholds)
                 result_rows.append(
@@ -300,7 +385,7 @@ def crossfit_label_policies(
                         "selection_fold": 1 - fold,
                         "evaluation_fold": fold,
                         "macro_f1": _safe_f1(y_true[evaluation_index], predictions),
-                        "continuous_macro_auc": macro_roc_auc_skip_degenerate(y_true, candidate_scores),
+                        "continuous_macro_auc": _safe_auc(y_true[evaluation_index], candidate_scores[evaluation_index]),
                         "predicted_positive_rate": float(predictions.mean()),
                     }
                 )
@@ -312,13 +397,27 @@ def crossfit_label_policies(
                             "seed": int(seed),
                             "selection_fold": 1 - fold,
                             "label_index": label_index,
+                            "label": target_labels[label_index] if target_labels else f"label_{label_index}",
                             "support": support,
-                            "support_stratum": str(group),
-                            "policy_scope": "independent" if str(group).startswith("label_") else "shared",
+                            "support_stratum": str(shared_groups[label_index]),
+                            "policy_scope": "independent" if stable[label_index] else "shared",
+                            "stability_passed": bool(stable[label_index]),
                             "source": candidate_name,
                             "threshold": float(thresholds[label_index]),
                         }
                     )
+            stable = (
+                _stable_independent_labels(
+                    fit_target,
+                    {name: values[selection_index] for name, values in candidates.items()},
+                    threshold_values,
+                    shared_groups,
+                    config,
+                )
+                if independent_enabled else np.zeros(fit_target.shape[1], dtype=bool)
+            )
+            groups = shared_groups.copy()
+            groups[stable] = [f"label_{index}" for index in np.flatnonzero(stable)]
             adaptive_thresholds, chosen = _adaptive_policy(
                 fit_target, candidates, selection_index, threshold_values, groups
             )
@@ -333,7 +432,7 @@ def crossfit_label_policies(
                     "selection_fold": 1 - fold,
                     "evaluation_fold": fold,
                     "macro_f1": _safe_f1(y_true[evaluation_index], predictions),
-                    "continuous_macro_auc": macro_roc_auc_skip_degenerate(y_true, adaptive_scores),
+                    "continuous_macro_auc": _safe_auc(y_true[evaluation_index], adaptive_scores[evaluation_index]),
                     "predicted_positive_rate": float(predictions.mean()),
                 }
             )
@@ -344,9 +443,11 @@ def crossfit_label_policies(
                         "seed": int(seed),
                         "selection_fold": 1 - fold,
                         "label_index": label_index,
+                        "label": target_labels[label_index] if target_labels else f"label_{label_index}",
                         "support": int(fit_target[:, label_index].sum()),
-                        "support_stratum": str(group),
-                        "policy_scope": "independent" if str(group).startswith("label_") else "shared",
+                        "support_stratum": str(shared_groups[label_index]),
+                        "policy_scope": "independent" if stable[label_index] else "shared",
+                        "stability_passed": bool(stable[label_index]),
                         "source": chosen[label_index],
                         "threshold": float(adaptive_thresholds[label_index]),
                     }
@@ -375,9 +476,12 @@ def rank_policy_results(results: pd.DataFrame, *, minimum_auc: float = DEFAULT_M
             aggregations["mean_predicted_positive_rate"] = ("predicted_positive_rate", "mean")
         ranked = grouped.agg(**aggregations).reset_index()
         ranked["std_crossfit_macro_f1"] = ranked["std_crossfit_macro_f1"].fillna(0.0)
+        ranked["auc_complete"] = grouped["continuous_macro_auc"].apply(
+            lambda values: bool(np.isfinite(values.to_numpy(dtype=float)).all())
+        ).to_numpy()
     if "candidate" not in ranked.columns:
         ranked = ranked.reset_index()
-    ranked["eligible"] = ranked["continuous_macro_auc"] >= float(minimum_auc)
+    ranked["eligible"] = ranked["continuous_macro_auc"].ge(float(minimum_auc)) & ranked.get("auc_complete", True)
     ranked["auc_eligible"] = ranked["eligible"]
     ranked = ranked.sort_values(
         ["eligible", "mean_crossfit_macro_f1", "min_crossfit_macro_f1", "std_crossfit_macro_f1", "continuous_macro_auc"],
@@ -400,18 +504,54 @@ def validate_fusion_config(config: Mapping[str, Any]) -> None:
         raise ValueError("production fusion must use threshold seeds 17, 31, 42, 73, 101")
     if not config.get("sources"):
         raise ValueError("fusion config must define sources")
+    if not {"rollback_auc", "rollback_homology"}.issubset(config["sources"]):
+        raise ValueError("production fusion must include rollback_auc and rollback_homology sources")
+
+
+def _resolve(root: Path, value: str | Path) -> Path:
+    path = Path(value)
+    return path if path.is_absolute() else root / path
+
+
+def _load_target_csv(config: Mapping[str, Any], root: Path, reference: Mapping[str, Any]) -> dict[str, Any]:
+    reference_ids, labels, _ = _parse_payload(reference, name="reference")
+    if reference_ids is None or labels is None:
+        raise ValueError("reference score source must include IDs and labels")
+    split_path = _resolve(root, config["split"]["validation_ids"])
+    canonical = pd.read_csv(split_path)
+    if list(canonical.columns) != ["protein_id"]:
+        raise ValueError("canonical validation IDs must have a protein_id column")
+    ids = canonical["protein_id"].astype(str).to_numpy()
+    if len(set(ids.tolist())) != len(ids):
+        raise ValueError("canonical validation IDs must be unique")
+    if not np.array_equal(ids, reference_ids):
+        raise ValueError("reference score IDs do not match canonical validation IDs and order")
+    train_path = _resolve(root, config["data"]["train_path"])
+    with train_path.open(newline="", encoding="utf-8") as handle:
+        header = next(csv.reader(handle))
+    if len(header) != len(set(header)):
+        raise ValueError("training CSV labels and columns must be unique")
+    if "protein_id" not in header or not set(labels).issubset(header):
+        raise ValueError("training CSV IDs or labels do not match score source")
+    train = pd.read_csv(train_path, usecols=["protein_id", *labels])
+    train["protein_id"] = train["protein_id"].astype(str)
+    if train["protein_id"].duplicated().any():
+        raise ValueError("training protein IDs must be unique")
+    indexed = train.set_index("protein_id")
+    if not pd.Index(ids).isin(indexed.index).all():
+        raise ValueError("canonical validation IDs are absent from training CSV")
+    values = indexed.loc[ids, labels].to_numpy()
+    if not np.isfinite(values).all() or not np.isin(values, [0, 1]).all():
+        raise ValueError("training labels must be finite binary values")
+    return {"target": values.astype(np.uint8), "protein_ids": ids, "label_columns": labels}
 
 
 def run_fusion(config_path: str | Path, *, project_root: str | Path | None = None) -> Path:
     root = Path(project_root) if project_root is not None else Path.cwd()
     config = json.loads(Path(config_path).read_text(encoding="utf-8"))
     validate_fusion_config(config)
-    prefix = Path(config["metrics_prefix"])
-    if not prefix.is_absolute():
-        prefix = root / prefix
-    run_dir = Path(config["output_dir"])
-    if not run_dir.is_absolute():
-        run_dir = root / run_dir
+    prefix = _resolve(root, config["metrics_prefix"])
+    run_dir = _resolve(root, config["output_dir"])
     paths = [run_dir]
     paths.extend(
         prefix.with_name(prefix.name + suffix)
@@ -426,21 +566,20 @@ def run_fusion(config_path: str | Path, *, project_root: str | Path | None = Non
     assert_fusion_outputs_absent(paths)
     source_payloads = {}
     reference = None
-    for name, source_path in config["sources"].items():
-        path = Path(source_path)
-        if not path.is_absolute():
-            path = root / path
+    for name, source_spec in config["sources"].items():
+        source_path = source_spec["path"] if isinstance(source_spec, Mapping) else source_spec
+        path = _resolve(root, source_path)
+        if not path.is_file():
+            raise FileNotFoundError(f"score source {name!r} is missing: {path}")
         with np.load(path, allow_pickle=False) as saved:
             payload = {key: saved[key] for key in saved.files}
+        if isinstance(source_spec, Mapping) and "key" in source_spec:
+            payload["score_key"] = source_spec["key"]
         if reference is None:
             reference = payload
         source_payloads[name] = payload
     aligned = align_score_sources(reference, source_payloads)
-    target_path = Path(config["target_path"])
-    if not target_path.is_absolute():
-        target_path = root / target_path
-    with np.load(target_path, allow_pickle=False) as saved:
-        target = {key: saved[key] for key in saved.files}
+    target = _load_target_csv(config, root, reference)
     seed_results, policies = crossfit_label_policies(target, aligned, config.get("seeds", DEFAULT_SEEDS), config)
     leaderboard = rank_policy_results(seed_results, minimum_auc=float(config.get("minimum_auc", DEFAULT_MINIMUM_AUC)))
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -448,8 +587,15 @@ def run_fusion(config_path: str | Path, *, project_root: str | Path | None = Non
     seed_results.to_csv(prefix.with_name(prefix.name + "-seed-results.csv"), index=False)
     leaderboard.to_csv(prefix.with_name(prefix.name + "-leaderboard.csv"), index=False)
     policies.to_csv(prefix.with_name(prefix.name + "-label-policies.csv"), index=False)
-    pd.DataFrame().to_csv(prefix.with_name(prefix.name + "-thresholds.csv"), index=False)
-    summary = {"experiment_id": config["experiment_id"], "selected": leaderboard.iloc[0].to_dict(), "seed_count": len(config.get("seeds", DEFAULT_SEEDS))}
+    policies[["candidate", "seed", "selection_fold", "label", "threshold", "source"]].assign(
+        evaluation_fold=lambda frame: 1 - frame["selection_fold"]
+    ).to_csv(prefix.with_name(prefix.name + "-thresholds.csv"), index=False)
+    eligible = leaderboard.loc[leaderboard["eligible"]]
+    summary = {
+        "experiment_id": config["experiment_id"],
+        "selected": eligible.iloc[0].to_dict() if not eligible.empty else None,
+        "seed_count": len(config.get("seeds", DEFAULT_SEEDS)),
+    }
     summary_path = prefix.with_name(prefix.name + "-summary.json")
     summary_path.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
     return summary_path
