@@ -1,0 +1,87 @@
+{
+  "experiment_id": "EXP-20260930-118-grouped-kmer-screen",
+  "cutoff": 112734,
+  "folds": 2,
+  "early_rows": 112734,
+  "tail_rows": 1062,
+  "selected_label_count": 100,
+  "selection": "evenly_spaced_support_ranks",
+  "threshold_seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "training_support_range": [
+    1278,
+    73654
+  ],
+  "feature_seconds": 296.68967610000254,
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 176489,
+    "block_vocabulary_sizes": {
+      "raw": 120000,
+      "physicochemical": 56489
+    },
+    "statistics_dimensions": 0,
+    "train_shape": [
+      112734,
+      176489
+    ],
+    "train_nnz": 279995510,
+    "train_bytes": 2240415020,
+    "validation_shape": [
+      1062,
+      176489
+    ],
+    "validation_nnz": 1862911,
+    "validation_bytes": 14907540
+  },
+  "best_candidate": {
+    "candidate": "raw-grouped025",
+    "multipliers": {
+      "all": 1.0
+    },
+    "tail_weight": 2.0,
+    "shrinkage": 50.0,
+    "fixed_macro_f1": 0.3153798645547939,
+    "crossfit_macro_f1": 0.3172363427171758,
+    "mean_crossfit_macro_f1": 0.3172363427171758,
+    "std_crossfit_macro_f1": 0.0012993118180230946,
+    "min_crossfit_macro_f1": 0.3151980709380757,
+    "seed_results": [
+      {
+        "seed": 17,
+        "macro_f1": 0.31705348538021155
+      },
+      {
+        "seed": 31,
+        "macro_f1": 0.3167119600274959
+      },
+      {
+        "seed": 42,
+        "macro_f1": 0.3151980709380757
+      },
+      {
+        "seed": 73,
+        "macro_f1": 0.31828570056181454
+      },
+      {
+        "seed": 101,
+        "macro_f1": 0.3189324966782814
+      }
+    ],
+    "continuous_macro_auc": 0.8049595379911301,
+    "predicted_positive_rate": 0.1135310734463277,
+    "fit_seconds": 2285.840958099998,
+    "inference_seconds": 0.5062748000200372,
+    "elapsed_seconds": 582.2619774000013
+  },
+  "outputs": {
+    "labels": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-118-grouped-kmer-screen-labels.csv",
+    "leaderboard": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-118-grouped-kmer-screen-leaderboard.csv",
+    "run_dir": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260930-118-grouped-kmer-screen"
+  }
+}

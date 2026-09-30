@@ -1,0 +1,204 @@
+{
+  "experiment_id": "EXP-20260930-126-esm-provenance-audit",
+  "diagnostic_only": true,
+  "data_source": "competition_train_only",
+  "validation_rows": 1062,
+  "window_count_distribution": {
+    "1": 1031,
+    "2": 24,
+    "3": 3,
+    "4": 4
+  },
+  "multiwindow_rows": 31,
+  "score_files": [
+    {
+      "path": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.7036393721535963,
+      "macro_f1_at_05_recomputed": 0.1364835307748885,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.7063035271842791,
+      "singlewindow_macro_f1_at_05": 0.13805982514586582
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-105-iteration7-esm-finetune-smoke/validation_scores.npz",
+      "shape": [
+        4,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": false,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.5454545454545454,
+      "macro_f1_at_05_recomputed": 0.15274170274170273
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-106-iteration7-esm-head-screen/validation_scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.6105179658098238,
+      "macro_f1_at_05_recomputed": 0.09604985118087338,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.6139830929135283,
+      "singlewindow_macro_f1_at_05": 0.0965259339491045
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-107-iteration7-esm-last2-screen/validation_scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.623200684284657,
+      "macro_f1_at_05_recomputed": 0.10660395681118454,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.6272106663457587,
+      "singlewindow_macro_f1_at_05": 0.10778182030987804
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-108-iteration7-esm-last2-full-epoch1/validation_scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.6898325095989184,
+      "macro_f1_at_05_recomputed": 0.13852625386236944,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.6935229403917191,
+      "singlewindow_macro_f1_at_05": 0.1408595361371078
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-110-esm150-head-screen/validation_scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.6139341600051064,
+      "macro_f1_at_05_recomputed": 0.10150070900197064,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.6166973059044706,
+      "singlewindow_macro_f1_at_05": 0.10205084076587248
+    },
+    {
+      "path": "artifacts/runs/EXP-20260930-117-esm-last4-full-epoch1/validation_scores.npz",
+      "shape": [
+        1062,
+        500
+      ],
+      "finite": true,
+      "labels_equal_train_columns": true,
+      "ids_equal_tail_split": true,
+      "ids_unique": true,
+      "macro_auc_recomputed": 0.6994043221362165,
+      "macro_f1_at_05_recomputed": 0.14361165054182054,
+      "singlewindow_rows": 1031,
+      "singlewindow_macro_auc": 0.7028556111862477,
+      "singlewindow_macro_f1_at_05": 0.14576895247414967
+    }
+  ],
+  "encoder_probes": [
+    {
+      "run_name": "EXP-20260930-106-iteration7-esm-head-screen",
+      "model_name": "facebook/esm2_t12_35M_UR50D",
+      "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "encoder_layers": 12,
+      "hidden_size": 480,
+      "head_input_width": 960,
+      "total_state_elements": 34250101,
+      "probe_ids": [
+        "P112746",
+        "P112760",
+        "P112769",
+        "P112808"
+      ],
+      "probe_truncation": 128,
+      "probe_rows": 4,
+      "residue_shape": [
+        510,
+        480
+      ],
+      "pooled_shape": [
+        4,
+        960
+      ],
+      "residue_nonzero_fraction": 1.0,
+      "residue_abs_mean": 0.19552399218082428,
+      "residue_std": 0.35252901911735535,
+      "pooled_nonzero_fraction": 1.0,
+      "pooled_std": 0.3723551034927368,
+      "pooled_distinct_rows": 4,
+      "finite": true
+    },
+    {
+      "run_name": "EXP-20260930-110-esm150-head-screen",
+      "model_name": "facebook/esm2_t30_150M_UR50D",
+      "revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+      "encoder_layers": 30,
+      "hidden_size": 640,
+      "head_input_width": 1280,
+      "total_state_elements": 149052717,
+      "probe_ids": [
+        "P112746",
+        "P112760",
+        "P112769",
+        "P112808"
+      ],
+      "probe_truncation": 128,
+      "probe_rows": 4,
+      "residue_shape": [
+        510,
+        640
+      ],
+      "pooled_shape": [
+        4,
+        1280
+      ],
+      "residue_nonzero_fraction": 1.0,
+      "residue_abs_mean": 0.1804938167333603,
+      "residue_std": 0.3372002840042114,
+      "pooled_nonzero_fraction": 1.0,
+      "pooled_std": 0.3555298447608948,
+      "pooled_distinct_rows": 4,
+      "finite": true
+    }
+  ],
+  "score_correlation": {
+    "flatten_pearson": 0.8961522302330952,
+    "flatten_spearman": 0.8919056733533668,
+    "per_label_pearson_median": 0.8911336295225425,
+    "per_label_pearson_max": 0.9598334503663833,
+    "labels_above_099": 0,
+    "mean_absolute_difference": 0.04842220416642627
+  },
+  "limitations": [
+    "Four truncated sequences are numerical probes, not a full embedding quality or generalization test.",
+    "EXP-106 and EXP-110 compute representations on the fly; no saved 150M embedding matrix is used.",
+    "Single-window cohort results quantify the aggregation hypothesis but do not prove other training settings correct.",
+    "No new training, thresholds, or submissions are performed by this audit."
+  ]
+}

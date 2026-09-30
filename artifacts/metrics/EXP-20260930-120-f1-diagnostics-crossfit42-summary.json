@@ -1,0 +1,17 @@
+{
+  "experiment_id": "EXP-20260930-120-f1-diagnostics-crossfit42",
+  "mean_crossfit_macro_f1": 0.3385517949962983,
+  "std_crossfit_macro_f1": 0.0,
+  "min_crossfit_macro_f1": 0.3385517949962983,
+  "continuous_macro_auc": 0.8244919055304825,
+  "predicted_positive_rate": 0.09145386064030132,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "diagnostic_only": true,
+  "outputs": {
+    "classification_report": "artifacts/metrics/EXP-20260930-120-f1-diagnostics-crossfit42-classification-report.txt",
+    "confusion_matrices": "artifacts/metrics/EXP-20260930-120-f1-diagnostics-crossfit42-confusion-matrices.csv",
+    "score_diagnostics": "artifacts/metrics/EXP-20260930-120-f1-diagnostics-crossfit42-score-diagnostics.csv",
+    "overfit_test": "artifacts/metrics/EXP-20260930-120-overfit-test.txt"
+  }
+}
