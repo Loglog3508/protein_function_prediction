@@ -31,6 +31,8 @@ def validate_finetune_config(config: dict[str, Any]) -> None:
         raise ValueError("training must be an object")
     if training.get("require_cuda", True) is not True:
         raise ValueError("training.require_cuda must be true")
+    if not isinstance(training.get("save_epoch_scores", False), bool):
+        raise ValueError("training.save_epoch_scores must be boolean")
     for key, minimum in (("epochs", 1), ("batch_size", 1), ("gradient_accumulation", 1)):
         if int(training.get(key, minimum)) < minimum:
             raise ValueError(f"training.{key} must be at least {minimum}")
@@ -367,6 +369,36 @@ def _evaluate_loader(
     ), macro_roc_auc_skip_degenerate(loader.dataset.targets, scores)
 
 
+def _save_epoch_artifacts(
+    output_dir: Path,
+    *,
+    history: list[dict],
+    validation_ids: Sequence[str],
+    labels: Sequence[str],
+    validation_scores: np.ndarray,
+) -> Path:
+    epoch = int(history[-1]["epoch"])
+    epoch_dir = output_dir / "epochs"
+    epoch_dir.mkdir(parents=True, exist_ok=True)
+    scores_path = epoch_dir / f"epoch{epoch:02d}-validation_scores.npz"
+    if scores_path.exists():
+        raise FileExistsError(f"epoch scores already exist: {scores_path}")
+    np.savez_compressed(
+        scores_path,
+        epoch=np.asarray(epoch, dtype=np.int64),
+        validation_ids=np.asarray(validation_ids, dtype=np.str_),
+        label_columns=np.asarray(labels, dtype=np.str_),
+        validation_scores=np.asarray(validation_scores, dtype=np.float32),
+    )
+    history_temporary = output_dir / "history.json.tmp"
+    history_temporary.write_text(
+        json.dumps({"history": history}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    history_temporary.replace(output_dir / "history.json")
+    return scores_path
+
+
 def run_finetune(config_path: str | Path, *, project_root: str | Path | None = None) -> Path:
     import pandas as pd
     import torch
@@ -558,6 +590,15 @@ def run_finetune(config_path: str | Path, *, project_root: str | Path | None = N
                 "validation_macro_auc": validation_auc,
             }
         )
+        if config["training"].get("save_epoch_scores", False):
+            _save_epoch_artifacts(
+                output_dir,
+                history=history,
+                validation_ids=validation_ids,
+                labels=labels,
+                validation_scores=validation_scores,
+            )
+        print(json.dumps(history[-1], ensure_ascii=False), flush=True)
         if score > best_score:
             best_score = score
             best_epoch = epoch

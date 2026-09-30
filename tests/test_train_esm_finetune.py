@@ -1,8 +1,10 @@
+import json
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
+from src import train_esm_finetune
 from src.train_esm_finetune import (
     _loss_for_batch,
     aggregate_window_scores,
@@ -40,6 +42,81 @@ def test_finetune_config_requires_cuda_and_valid_windowing():
         "training": {**config["training"], "loss": {"name": "focal_bce", "gamma": 2.0}},
     }
     validate_finetune_config(focal_config)
+
+
+def test_finetune_config_rejects_non_boolean_epoch_score_flag():
+    config = {
+        "model_name": "fake/esm",
+        "training": {"require_cuda": True, "save_epoch_scores": "true"},
+    }
+
+    with pytest.raises(ValueError, match="save_epoch_scores"):
+        validate_finetune_config(config)
+
+
+def test_epoch_artifacts_preserve_all_scores_and_publish_live_history(tmp_path):
+    history = [
+        {
+            "epoch": 1,
+            "loss": 0.5,
+            "validation_macro_f1": 0.2,
+            "validation_macro_auc": 0.7,
+        }
+    ]
+    scores = np.array([[0.1, 0.9], [0.8, 0.2]], dtype=np.float32)
+    first_path = train_esm_finetune._save_epoch_artifacts(
+        tmp_path,
+        history=history,
+        validation_ids=["protein1", "protein2"],
+        labels=["label1", "label2"],
+        validation_scores=scores,
+    )
+    first_bytes = first_path.read_bytes()
+    history.append(
+        {
+            "epoch": 2,
+            "loss": 0.45,
+            "validation_macro_f1": 0.18,
+            "validation_macro_auc": 0.69,
+        }
+    )
+    second_path = train_esm_finetune._save_epoch_artifacts(
+        tmp_path,
+        history=history,
+        validation_ids=["protein1", "protein2"],
+        labels=["label1", "label2"],
+        validation_scores=scores / 2,
+    )
+
+    assert first_path.name == "epoch01-validation_scores.npz"
+    assert second_path.name == "epoch02-validation_scores.npz"
+    assert first_path.read_bytes() == first_bytes
+    for epoch, path, expected in ((1, first_path, scores), (2, second_path, scores / 2)):
+        with np.load(path, allow_pickle=False) as saved:
+            assert saved["epoch"].item() == epoch
+            assert saved["validation_ids"].tolist() == ["protein1", "protein2"]
+            assert saved["label_columns"].tolist() == ["label1", "label2"]
+            np.testing.assert_array_equal(saved["validation_scores"], expected)
+    assert json.loads((tmp_path / "history.json").read_text(encoding="utf-8")) == {
+        "history": history
+    }
+    assert not (tmp_path / "history.json.tmp").exists()
+
+
+def test_epoch_artifacts_refuse_to_overwrite_existing_scores(tmp_path):
+    arguments = {
+        "history": [{"epoch": 1, "loss": 0.5, "validation_macro_auc": 0.7}],
+        "validation_ids": ["protein1"],
+        "labels": ["label1"],
+        "validation_scores": np.array([[0.5]], dtype=np.float32),
+    }
+    path = train_esm_finetune._save_epoch_artifacts(tmp_path, **arguments)
+    original = path.read_bytes()
+
+    with pytest.raises(FileExistsError):
+        train_esm_finetune._save_epoch_artifacts(tmp_path, **arguments)
+
+    assert path.read_bytes() == original
 
 
 def test_focal_bce_loss_is_finite_and_focuses_hard_examples():
