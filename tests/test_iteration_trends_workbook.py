@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ElementTree
 import zipfile
 
 
-WORKBOOK_PATH = Path(__file__).resolve().parents[1] / "reports" / "蛋白质功能预测迭代趋势.xlsx"
+WORKBOOK_PATH = Path(__file__).resolve().parents[1] / "reports" / "tables" / "蛋白质功能预测迭代趋势.xlsx"
 NAMESPACES = {
     "chart": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "drawing": "http://schemas.openxmlformats.org/drawingml/2006/main",

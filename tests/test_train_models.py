@@ -11,6 +11,37 @@ import src.train
 
 
 class LabelModelTests(unittest.TestCase):
+    def test_label_multipliers_preserve_balanced_negative_weight(self):
+        target = np.array([0, 0, 0, 1], dtype=np.uint8)
+        weights = src.train._scaled_label_class_weight(
+            {"class_weight": "balanced"}, target, 1.5
+        )
+        self.assertAlmostEqual(weights[0], 4 / 6)
+        self.assertAlmostEqual(weights[1], 3.0)
+        custom = src.train._scaled_label_class_weight(
+            {"class_weight": {0: 2.0, 1: 3.0}}, target, 0.5
+        )
+        self.assertEqual(custom, {0: 2.0, 1: 1.5})
+
+    def test_label_multiplier_validation_and_unit_multiplier_equivalence(self):
+        features = np.array([[0.0], [0.2], [0.8], [1.0]], dtype=np.float32)
+        target = np.array([[0, 1], [0, 0], [1, 0], [1, 0]], dtype=np.uint8)
+        config = {"type": "sgd", "class_weight": "balanced", "max_iter": 50}
+        _, reference = src.train.fit_label_models(
+            features, target, features, model_config=config, seed=42
+        )
+        _, weighted = src.train.fit_label_models(
+            features, target, features, model_config=config, seed=42,
+            label_positive_weight_multipliers=np.ones(2),
+        )
+        np.testing.assert_array_equal(reference, weighted)
+        for values in ([1.0], [0.0, 1.0], [1.0, float("nan")]):
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                src.train.fit_label_models(
+                    features, target, features, model_config=config, seed=42,
+                    label_positive_weight_multipliers=values,
+                )
+
     def test_parallel_sgd_matches_serial_scores_models_and_progress(self):
         features = np.array(
             [

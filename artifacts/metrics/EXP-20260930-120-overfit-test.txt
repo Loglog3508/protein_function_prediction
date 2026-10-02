@@ -1,0 +1,10 @@
+trained 100/500 labels
+trained 200/500 labels
+=== 20-row identity + random forest memorization ===
+rows 20 labels 500 active_labels 239 score_shape (20, 500) finite True
+macro_f1 1.0 exact_label_accuracy 1.0 mean_positive_support 2.192468619246862
+trained 100/500 labels
+trained 200/500 labels
+=== 20-row real sequence composition + SGD ===
+feature_shape (20, 21) score_shape (20, 500) finite True
+macro_f1 0.01890149447908225 exact_label_accuracy 0.9366

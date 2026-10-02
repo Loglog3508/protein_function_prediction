@@ -1,0 +1,67 @@
+{
+  "verification": "passed",
+  "source_score_matrices": 5,
+  "directly_recomputed_label_metrics": 2500,
+  "overlap_rows": 2500,
+  "seed_label_rows": 12500,
+  "paired_label_rows": 4000,
+  "artifacts": {
+    "summary": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-summary.json",
+      "sha256": "de1c5a7ce2704ffc3502032dd3ee816601e17d58e035b75af78c3a6308c86edc"
+    },
+    "labels": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-per-label.csv",
+      "sha256": "c474910efa2cfe9913ceb2178ac4f5ffaf4194c380eea6370060fe9e9fc21b0e"
+    },
+    "seed_labels": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-per-label-seeds.csv",
+      "sha256": "dd67670e2682e9cabc1ef5a67a71138f71192a01ec295d4e02f6831025bded15"
+    },
+    "strata": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-strata.csv",
+      "sha256": "628127de139e41c8a39fff16e56301729a75ab771bc0698b019d798001413a7d"
+    },
+    "pairs": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-paired-labels.csv",
+      "sha256": "258539d36d076ce24abde48bd88532d34f96348d73a64325b4f62cdcf0bae7a4"
+    },
+    "paired_strata": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-paired-strata.csv",
+      "sha256": "aac181ad5961218cc1d56d27766f93354929b1df7bb499c14d028798125a23ad"
+    },
+    "counterfactuals": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-counterfactuals.csv",
+      "sha256": "68f5e4a58d38f2aee9cad4affae60a4d424d8a62ae2c7ee625e515a0cdc8b4e4"
+    },
+    "thresholds": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-thresholds.csv",
+      "sha256": "ffe6b92b73adecb77307892bcbd847e37cbe97f1ff482ab6e2fafd3c09a696ce"
+    },
+    "curve": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-curves.png",
+      "sha256": "84528d093d333de83007578e5c273639a3f53635d935b2e8830d504695c4e3a6"
+    },
+    "overlap": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-overlap.csv",
+      "sha256": "bb23d2244d11bf75f28de5c8e2c235d91f395c653e36359b1daf26973d0efe7c"
+    },
+    "overlap_distribution": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-overlap-distribution.csv",
+      "sha256": "5c92ff5b53a571bc233371680514afe9bde24abab9a99db5b0c70790bd12973a"
+    },
+    "prevalence": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-prevalence-decomposition.csv",
+      "sha256": "bb513dabc458a698decbbed0bce5190658a84025ffd7131ce88fa5a86d58b90b"
+    },
+    "support_contrasts": {
+      "path": "artifacts/metrics/EXP-20261001-128-esm35-epoch-diagnostics-support-contrasts.csv",
+      "sha256": "083e38985dbdd45abe906c509c5852e914f0f3ebe16227e7ea91318b22735fb8"
+    }
+  },
+  "source_config_sha256": "3eca6ebbcc989b2e1276746c1978fe7e34bd37f2b9253bb75d1f894cbb44bab8",
+  "prepared_150m_config_sha256": "37f12c142ae046157b2bc8d4291b9f892a7718e7c133dea715ae4673b29b6653",
+  "150m_output_dir_exists": false,
+  "positive_excess_deficit_net_conservation": true,
+  "all_source_score_hashes_unchanged": true
+}

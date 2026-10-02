@@ -1,0 +1,258 @@
+{
+  "experiment_id": "EXP-20260930-127-esm35-last4-full-epoch10",
+  "analysis_only": true,
+  "source_summary": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/summary.json",
+  "source_summary_sha256": "e2f6379ded08ca3d2517197e3a9725afcf405cc046a15a5ce3ddab736dbb337f",
+  "completed_epochs": 10,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "checkpoint_metric": "macro_f1",
+  "best_epoch": 7,
+  "best_auc_epoch": 8,
+  "best_crossfit_f1_epoch": 6,
+  "first_auc_deceleration_epoch": 5,
+  "auc_epoch1_to_epoch10_total": 0.0745260565322915,
+  "auc_latest_increment": 0.005020058188018206,
+  "auc_last_three_increments_mean": 0.0001382541379521355,
+  "default_f1_epoch1_to_epoch10_total": 0.03859890031395449,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 0.5665241685985225,
+      "validation_macro_f1": 0.1435835603655184,
+      "validation_macro_auc": 0.6993961614529766,
+      "mean_crossfit_macro_f1": 0.15240068798396839,
+      "std_crossfit_macro_f1": 0.0011162939593223134,
+      "min_crossfit_macro_f1": 0.1510413874700489,
+      "default_predicted_positive_rate": 0.25348964218455744,
+      "mean_crossfit_predicted_positive_rate": 0.17945687382297554,
+      "auc_delta_from_previous": null,
+      "auc_second_difference": null,
+      "default_f1_delta_from_previous": null,
+      "crossfit_f1_delta_from_previous": null,
+      "loss_delta_from_previous": null
+    },
+    {
+      "epoch": 2,
+      "loss": 0.536427963388724,
+      "validation_macro_f1": 0.15341308342970775,
+      "validation_macro_auc": 0.7125140217413453,
+      "mean_crossfit_macro_f1": 0.17354954350194968,
+      "std_crossfit_macro_f1": 0.0006325995027735849,
+      "min_crossfit_macro_f1": 0.1724836176114504,
+      "default_predicted_positive_rate": 0.2517024482109228,
+      "mean_crossfit_predicted_positive_rate": 0.14218681732580035,
+      "auc_delta_from_previous": 0.013117860288368699,
+      "auc_second_difference": null,
+      "default_f1_delta_from_previous": 0.009829523064189355,
+      "crossfit_f1_delta_from_previous": 0.02114885551798129,
+      "loss_delta_from_previous": -0.0300962052097985
+    },
+    {
+      "epoch": 3,
+      "loss": 0.5204751039131555,
+      "validation_macro_f1": 0.1618803566848813,
+      "validation_macro_auc": 0.7297472473298885,
+      "mean_crossfit_macro_f1": 0.18359829469978295,
+      "std_crossfit_macro_f1": 0.0015045219249604552,
+      "min_crossfit_macro_f1": 0.18102310961427634,
+      "default_predicted_positive_rate": 0.257894538606403,
+      "mean_crossfit_predicted_positive_rate": 0.13554086629001882,
+      "auc_delta_from_previous": 0.017233225588543233,
+      "auc_second_difference": 0.004115365300174534,
+      "default_f1_delta_from_previous": 0.008467273255173546,
+      "crossfit_f1_delta_from_previous": 0.010048751197833272,
+      "loss_delta_from_previous": -0.01595285947556846
+    },
+    {
+      "epoch": 4,
+      "loss": 0.5077008907566443,
+      "validation_macro_f1": 0.16860586719637616,
+      "validation_macro_auc": 0.7497840240894077,
+      "mean_crossfit_macro_f1": 0.1991342015772713,
+      "std_crossfit_macro_f1": 0.000983407178669901,
+      "min_crossfit_macro_f1": 0.19766808286935858,
+      "default_predicted_positive_rate": 0.2813427495291902,
+      "mean_crossfit_predicted_positive_rate": 0.12731224105461392,
+      "auc_delta_from_previous": 0.020036776759519204,
+      "auc_second_difference": 0.002803551170975971,
+      "default_f1_delta_from_previous": 0.006725510511494864,
+      "crossfit_f1_delta_from_previous": 0.015535906877488348,
+      "loss_delta_from_previous": -0.012774213156511283
+    },
+    {
+      "epoch": 5,
+      "loss": 0.4960352297940129,
+      "validation_macro_f1": 0.17776626719763267,
+      "validation_macro_auc": 0.7540775192843178,
+      "mean_crossfit_macro_f1": 0.20851445194443188,
+      "std_crossfit_macro_f1": 0.0015266929106770508,
+      "min_crossfit_macro_f1": 0.20683092392060595,
+      "default_predicted_positive_rate": 0.22901694915254237,
+      "mean_crossfit_predicted_positive_rate": 0.11953785310734463,
+      "auc_delta_from_previous": 0.004293495194910069,
+      "auc_second_difference": -0.015743281564609135,
+      "default_f1_delta_from_previous": 0.009160400001256508,
+      "crossfit_f1_delta_from_previous": 0.009380250367160586,
+      "loss_delta_from_previous": -0.011665660962631386
+    },
+    {
+      "epoch": 6,
+      "loss": 0.48489047076845637,
+      "validation_macro_f1": 0.17690375900368668,
+      "validation_macro_auc": 0.7680116652409509,
+      "mean_crossfit_macro_f1": 0.2140327830906236,
+      "std_crossfit_macro_f1": 0.0008412069589320026,
+      "min_crossfit_macro_f1": 0.21283468169415204,
+      "default_predicted_positive_rate": 0.26567608286252353,
+      "mean_crossfit_predicted_positive_rate": 0.12043540489642184,
+      "auc_delta_from_previous": 0.013934145956633115,
+      "auc_second_difference": 0.009640650761723046,
+      "default_f1_delta_from_previous": -0.0008625081939459822,
+      "crossfit_f1_delta_from_previous": 0.005518331146191713,
+      "loss_delta_from_previous": -0.011144759025556505
+    },
+    {
+      "epoch": 7,
+      "loss": 0.47298336309026123,
+      "validation_macro_f1": 0.18647592393795454,
+      "validation_macro_auc": 0.7735074555714117,
+      "mean_crossfit_macro_f1": 0.2103184657752572,
+      "std_crossfit_macro_f1": 0.0011201275924408972,
+      "min_crossfit_macro_f1": 0.20887113651698275,
+      "default_predicted_positive_rate": 0.2291713747645951,
+      "mean_crossfit_predicted_positive_rate": 0.12497966101694916,
+      "auc_delta_from_previous": 0.00549579033046077,
+      "auc_second_difference": -0.008438355626172345,
+      "default_f1_delta_from_previous": 0.009572164934267852,
+      "crossfit_f1_delta_from_previous": -0.0037143173153663944,
+      "loss_delta_from_previous": -0.011907107678195139
+    },
+    {
+      "epoch": 8,
+      "loss": 0.4608808898469237,
+      "validation_macro_f1": 0.1846459618354907,
+      "validation_macro_auc": 0.7756573106500609,
+      "mean_crossfit_macro_f1": 0.2073012080221889,
+      "std_crossfit_macro_f1": 0.0018435317551136188,
+      "min_crossfit_macro_f1": 0.20401045184714842,
+      "default_predicted_positive_rate": 0.2278418079096045,
+      "mean_crossfit_predicted_positive_rate": 0.12316459510357816,
+      "auc_delta_from_previous": 0.0021498550786492876,
+      "auc_second_difference": -0.0033459352518114827,
+      "default_f1_delta_from_previous": -0.0018299621024638335,
+      "crossfit_f1_delta_from_previous": -0.0030172577530682976,
+      "loss_delta_from_previous": -0.01210247324333752
+    },
+    {
+      "epoch": 9,
+      "loss": 0.4474473602826347,
+      "validation_macro_f1": 0.1830274024822102,
+      "validation_macro_auc": 0.7689021597972499,
+      "mean_crossfit_macro_f1": 0.20474403540570982,
+      "std_crossfit_macro_f1": 0.0013854558984362237,
+      "min_crossfit_macro_f1": 0.20271926486271175,
+      "default_predicted_positive_rate": 0.24288323917137478,
+      "mean_crossfit_predicted_positive_rate": 0.1366395480225989,
+      "auc_delta_from_previous": -0.006755150852811087,
+      "auc_second_difference": -0.008905005931460375,
+      "default_f1_delta_from_previous": -0.0016185593532805076,
+      "crossfit_f1_delta_from_previous": -0.0025571726164790864,
+      "loss_delta_from_previous": -0.013433529564289004
+    },
+    {
+      "epoch": 10,
+      "loss": 0.43407095636865767,
+      "validation_macro_f1": 0.18218246067947289,
+      "validation_macro_auc": 0.7739222179852681,
+      "mean_crossfit_macro_f1": 0.20693076047225048,
+      "std_crossfit_macro_f1": 0.0008025016948400223,
+      "min_crossfit_macro_f1": 0.20598822678632542,
+      "default_predicted_positive_rate": 0.2575291902071563,
+      "mean_crossfit_predicted_positive_rate": 0.1357920903954802,
+      "auc_delta_from_previous": 0.005020058188018206,
+      "auc_second_difference": 0.011775209040829293,
+      "default_f1_delta_from_previous": -0.000844941802737309,
+      "crossfit_f1_delta_from_previous": 0.0021867250665406623,
+      "loss_delta_from_previous": -0.013376403913977042
+    }
+  ],
+  "mean_crossfit_macro_f1": 0.2103184657752572,
+  "std_crossfit_macro_f1": 0.0011201275924408972,
+  "min_crossfit_macro_f1": 0.20887113651698275,
+  "continuous_macro_auc": 0.7735074555714117,
+  "default_05_macro_f1": 0.18647592393795454,
+  "true_positive_rate": 0.05916572504708098,
+  "threshold_protocol": "Exact per-label thresholds, selection-fold global grid 0.02, shrinkage 25, two-fold merged predictions",
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "score_provenance": [
+    {
+      "epoch": 1,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch01-validation_scores.npz",
+      "sha256": "96bfe27b0a35667a66dc3bbd82d770c4a47a375150c4870f4dd242b4626d612b"
+    },
+    {
+      "epoch": 2,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch02-validation_scores.npz",
+      "sha256": "6902962595fa0ef38917e31bb1614c4b5dcc13e0679af66df421b1d0659d03b3"
+    },
+    {
+      "epoch": 3,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch03-validation_scores.npz",
+      "sha256": "a2ae6a398ade0ee08feef19e0b5eb50d93f793898d47f1f2a1d795787bd3394c"
+    },
+    {
+      "epoch": 4,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch04-validation_scores.npz",
+      "sha256": "8e02910d101e4904d95be7b1724e4271abc0fd36f017916f3d61fbcb4e05b407"
+    },
+    {
+      "epoch": 5,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch05-validation_scores.npz",
+      "sha256": "7e467973953bc2af7b7521967d5c5c5ca310fdf954b8605fd54b4b45542635f0"
+    },
+    {
+      "epoch": 6,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch06-validation_scores.npz",
+      "sha256": "ce1cf6e2872e35ad057532407cf897d0b69425c001d157dade6d0a4c6a476ccb"
+    },
+    {
+      "epoch": 7,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch07-validation_scores.npz",
+      "sha256": "5c1051445ea27b56dafe2860a5e35818cd89841960ed64cfab6b8420d3d64c73"
+    },
+    {
+      "epoch": 8,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch08-validation_scores.npz",
+      "sha256": "738eb976cd387be2699d912722d895837314bf004cd1e8a00537f35545affb93"
+    },
+    {
+      "epoch": 9,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch09-validation_scores.npz",
+      "sha256": "f08d8ff445d28dcc13977fbd24eaebd156cc3aa1450925e99aab40bdbe5dba5d"
+    },
+    {
+      "epoch": 10,
+      "path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch10-validation_scores.npz",
+      "sha256": "0a46618eb970a533763d182b85f70862fc356e361e9f891b7502a557d0e6c627"
+    }
+  ],
+  "outputs": {
+    "summary": "artifacts/metrics/EXP-20260930-127-epoch10-analysis-summary.json",
+    "history": "artifacts/metrics/EXP-20260930-127-epoch10-analysis-history.csv",
+    "seeds": "artifacts/metrics/EXP-20260930-127-epoch10-analysis-crossfit-seeds.csv",
+    "curve": "artifacts/metrics/EXP-20260930-127-epoch10-analysis-curves.png"
+  },
+  "limitations": [
+    "Five seeds vary threshold calibration splits, not independent model training.",
+    "First AUC gain deceleration is a signal to inspect later epochs, not proof of convergence.",
+    "Only the best-default-F1 model checkpoint is saved; every epoch retains its validation scores.",
+    "No new training, test predictions, or competition submission."
+  ]
+}

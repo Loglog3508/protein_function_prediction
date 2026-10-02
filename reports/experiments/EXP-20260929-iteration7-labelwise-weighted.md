@@ -48,3 +48,15 @@ The seventh iteration did not improve the best local F1 and did not approach
 until a new model produces a higher cross-fitted F1. Any ESM-based submission
 still requires confirmation of the competition's external-pretrained-weight
 rules.
+
+## Artifact audit on 2026-09-30
+
+The currently present EXP-095 summary and leaderboard both select `adaptive`
+with mean F1 `0.32430998512037634`, standard deviation `0.013956042497509615`,
+and AUC `0.8280838467649557`. These values differ from the archived table above,
+which reports the labelwise weighted candidate at F1 `0.323465`.
+The original table is retained as a historical snapshot. The iteration tracker
+now records the current artifact values explicitly as an artifact audit, not as
+an independently reproduced improvement from labelwise weight search. Do not
+use these conflicting snapshots to replace EXP-103 or infer an F1 gain. The
+effective configuration and aggregation path require separate reconciliation.

@@ -1,0 +1,40 @@
+{
+  "experiment_id": "EXP-20260930-114-reference-audit",
+  "reference_experiment": "EXP-20260930-103-iteration8-rank-fusion-seed-aggregate",
+  "validation_rows": 1062,
+  "screen_label_count": 100,
+  "full_macro_f1_mean": 0.3382479496821853,
+  "screen_subset_macro_f1_mean": 0.34414943196004033,
+  "screen_subset_macro_f1_std": 0.0009085464624165665,
+  "screen_subset_macro_f1_min": 0.3429018115988519,
+  "screen_subset_macro_auc": 0.825483219109571,
+  "seed_results": [
+    {
+      "seed": 17,
+      "full_macro_f1": 0.3376398992353284,
+      "screen_subset_macro_f1": 0.3433477855060773
+    },
+    {
+      "seed": 31,
+      "full_macro_f1": 0.3380756573156167,
+      "screen_subset_macro_f1": 0.34505138703631033
+    },
+    {
+      "seed": 42,
+      "full_macro_f1": 0.33888037314735003,
+      "screen_subset_macro_f1": 0.3452007931237515
+    },
+    {
+      "seed": 73,
+      "full_macro_f1": 0.3396195972535044,
+      "screen_subset_macro_f1": 0.3442453825352107
+    },
+    {
+      "seed": 101,
+      "full_macro_f1": 0.337024221459127,
+      "screen_subset_macro_f1": 0.3429018115988519
+    }
+  ],
+  "optimistic_in_sample_threshold_oracle_full_f1": 0.38978376232854917,
+  "oracle_warning": "Uses all validation labels to optimize thresholds; diagnostic upper bound on current scores only, not a valid candidate or submission score."
+}

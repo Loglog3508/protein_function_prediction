@@ -65,4 +65,4 @@ EXP-125 校准 F1 较 EXP-117 提升 **+0.031267464**，但仍低于现行参考
 - 三轮结果表：`artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-history.csv`。
 - 五 seed 结果表：`artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-crossfit-seeds.csv`。
 - 三点 AUC 图：`artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-auc.png`。
-- 迭代登记及整体趋势：`reports/蛋白质功能预测迭代趋势.xlsx`，来源登记在 `configs/iteration_trends_updates_20260930.json`。
+- 迭代登记及整体趋势：`reports/tables/蛋白质功能预测迭代趋势.xlsx`，来源登记在 `configs/iteration_trends_updates_20260930.json`。

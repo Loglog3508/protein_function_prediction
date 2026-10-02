@@ -1,0 +1,11 @@
+{
+  "experiment_id": "EXP-20260930-119-prior-calibration",
+  "scores_path": "artifacts/runs/EXP-20260930-103-iteration8-rank-fusion-seed-aggregate/scores.npz",
+  "train_path": "data/train.csv",
+  "training_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+  "support_bins": [20, 100, 1000],
+  "calibration_seeds": [17, 31, 42, 73, 101],
+  "threshold_seeds": [17, 31, 42, 73, 101],
+  "shrinkages": [25.0, 50.0, 100.0],
+  "output_prefix": "artifacts/metrics/EXP-20260930-119-prior-calibration"
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "iteration": "第十七次（EXP-127 十轮曲线）",
+    "date": "2026-10-01",
+    "status": "complete",
+    "method": "ESM-2 35M 最后4层；EXP-125 同配置从头训练10 epoch，登记默认F1最佳 epoch7",
+    "validation": "固定尾段 1,062 样本、500 标签；五 seed 精确收缩阈值、两折预测合并",
+    "f1": 0.2103184657752572,
+    "std": 0.0011201275924408972,
+    "auc": 0.7735074555714117,
+    "conclusion": "首次减速e5，e6反弹后趋平；e7→10平均斜率+0.000138。AUC峰e8，校准F1峰e6；登记保存的e7，不盲目加轮。报告：EXP-127十轮曲线。",
+    "source": "artifacts/metrics/EXP-20260930-127-epoch10-analysis-summary.json",
+    "sourceKeys": []
+  }
+]

@@ -43,6 +43,36 @@ def _class_weight(model_config: dict):
     return model_config.get("class_weight")
 
 
+def _scaled_label_class_weight(
+    model_config: dict,
+    target: np.ndarray,
+    multiplier: float | None,
+):
+    """Return an optional per-label class-weight override."""
+    if multiplier is None:
+        return _class_weight(model_config)
+    if not np.isfinite(multiplier) or multiplier <= 0:
+        raise ValueError("label positive weight multiplier must be positive")
+    base_weight = _class_weight(model_config)
+    if base_weight == "balanced":
+        positive = int(target.sum())
+        negative = int(target.size - positive)
+        if positive == 0 or negative == 0:
+            return base_weight
+        total = float(target.size)
+        return {
+            0: total / (2.0 * negative),
+            1: total / (2.0 * positive) * multiplier,
+        }
+    if base_weight is None:
+        return {0: 1.0, 1: multiplier}
+    if isinstance(base_weight, dict):
+        scaled = dict(base_weight)
+        scaled[1] = float(scaled.get(1, 1.0)) * multiplier
+        return scaled
+    raise ValueError("label weight multipliers require dict, balanced, or no class weight")
+
+
 def fit_label_models(
     training_features,
     training_target: np.ndarray,
@@ -54,6 +84,7 @@ def fit_label_models(
     retain_models: bool = True,
     timing_stats: dict[str, float] | None = None,
     training_sample_weight: np.ndarray | None = None,
+    label_positive_weight_multipliers: np.ndarray | None = None,
 ) -> tuple[list[object], np.ndarray]:
     """Fit one binary model per label and return continuous positive scores."""
     training_target = np.asarray(training_target)
@@ -67,6 +98,20 @@ def fit_label_models(
             training_sample_weight < 0
         ).any():
             raise ValueError("training sample weights must be finite and non-negative")
+    if label_positive_weight_multipliers is not None:
+        label_positive_weight_multipliers = np.asarray(
+            label_positive_weight_multipliers, dtype=np.float64
+        )
+        if label_positive_weight_multipliers.shape != (training_target.shape[1],):
+            raise ValueError(
+                "label positive weight multipliers must match label count"
+            )
+        if not np.isfinite(label_positive_weight_multipliers).all() or (
+            label_positive_weight_multipliers <= 0
+        ).any():
+            raise ValueError(
+                "label positive weight multipliers must be finite and positive"
+            )
     model_type = model_config["type"]
     if model_type not in {"random_forest", "sgd", "logistic_regression"}:
         raise ValueError("unsupported model type")
@@ -82,6 +127,14 @@ def fit_label_models(
     )
     def fit_one_label(label_index: int):
         target = training_target[:, label_index]
+        label_multiplier = (
+            None
+            if label_positive_weight_multipliers is None
+            else float(label_positive_weight_multipliers[label_index])
+        )
+        class_weight = _scaled_label_class_weight(
+            model_config, target, label_multiplier
+        )
         classes = np.unique(target)
         if len(classes) == 1:
             value = int(classes[0])
@@ -98,7 +151,7 @@ def fit_label_models(
             model = RandomForestClassifier(
                 n_estimators=model_config["n_estimators"],
                 max_depth=model_config.get("max_depth"),
-                class_weight=_class_weight(model_config),
+                class_weight=class_weight,
                 n_jobs=model_n_jobs,
                 random_state=seed,
             )
@@ -107,7 +160,7 @@ def fit_label_models(
                 loss="log_loss",
                 alpha=model_config.get("alpha", 0.0001),
                 average=model_config.get("average", False),
-                class_weight=_class_weight(model_config),
+                class_weight=class_weight,
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-3),
                 random_state=seed,
@@ -116,7 +169,7 @@ def fit_label_models(
         else:
             model = LogisticRegression(
                 C=model_config.get("C", 1.0),
-                class_weight=_class_weight(model_config),
+                class_weight=class_weight,
                 max_iter=model_config.get("max_iter", 1000),
                 tol=model_config.get("tol", 1e-4),
                 random_state=seed,

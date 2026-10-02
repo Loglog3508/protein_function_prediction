@@ -41,6 +41,25 @@ def build_kmer_vectorizer(
     )
 
 
+class GroupedResiduePreprocessor:
+    """Encode a complete, disjoint residue partition without dropping positions."""
+
+    def __init__(self, groups: list[str]):
+        residues = "".join(groups)
+        if not groups or any(not group for group in groups):
+            raise ValueError("alphabet groups must be non-empty")
+        if len(residues) != len(set(residues)) or set(residues) != set(AMINO_ACIDS):
+            raise ValueError("alphabet groups must partition the 20 amino acids")
+        self.mapping = {
+            residue: AMINO_ACIDS[index]
+            for index, group in enumerate(groups)
+            for residue in group
+        }
+
+    def __call__(self, sequence: str) -> str:
+        return "".join(self.mapping.get(residue, "X") for residue in sequence)
+
+
 class KmerBlockVectorizer:
     """Fit and concatenate independently capped character k-mer blocks."""
 
@@ -56,15 +75,18 @@ class KmerBlockVectorizer:
                 raise ValueError("k-mer block names must be unique")
             self.names.append(name)
             self.weights.append(float(block.get("weight", 1.0)))
-            self.vectorizers.append(
-                build_kmer_vectorizer(
+            vectorizer = build_kmer_vectorizer(
                     k_min=int(block["k_min"]),
                     k_max=int(block["k_max"]),
                     min_df=block["min_df"],
                     max_features=block.get("max_features"),
                     sublinear_tf=bool(block.get("sublinear_tf", True)),
-                )
             )
+            if "alphabet_groups" in block:
+                vectorizer.set_params(
+                    preprocessor=GroupedResiduePreprocessor(block["alphabet_groups"])
+                )
+            self.vectorizers.append(vectorizer)
 
     def _combine(self, matrices):
         weighted = [

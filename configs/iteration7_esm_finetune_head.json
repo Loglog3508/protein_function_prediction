@@ -1,0 +1,40 @@
+{
+  "experiment_id": "EXP-20260930-105-esm-finetune-head",
+  "seed": 42,
+  "model_name": "facebook/esm2_t12_35M_UR50D",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "window_size": 1022,
+  "overlap": 128,
+  "pooling": "mean_max",
+  "head_hidden_size": 512,
+  "dropout": 0.1,
+  "unfreeze_last_n_layers": 0,
+  "data": {
+    "train_path": "data/train.csv"
+  },
+  "split": {
+    "kind": "iteration4_tail",
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+  },
+  "training": {
+    "require_cuda": true,
+    "epochs": 2,
+    "batch_size": 2,
+    "gradient_accumulation": 8,
+    "learning_rate": 0.0005,
+    "encoder_learning_rate": 0.00001,
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "amp": true,
+    "positive_weight_cap": 20.0,
+    "checkpoint_metric": "macro_f1",
+    "loss": {
+      "name": "asymmetric_bce",
+      "gamma_positive": 0.0,
+      "gamma_negative": 1.0,
+      "probability_clip": 0.05
+    }
+  },
+  "output_dir": "artifacts/runs/EXP-20260930-105-iteration7-esm-finetune-head"
+}

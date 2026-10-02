@@ -1,0 +1,34 @@
+{
+  "experiment_id": "EXP-20260930-115-oof-label-chain-screen",
+  "seed": 42,
+  "seeds": [17, 31, 42, 73, 101],
+  "data": {"train_path": "data/train.csv"},
+  "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv",
+  "distribution": {"cutoff": 112734, "folds": 2, "inner_folds": 2},
+  "selection": {"label_count": 100},
+  "features": {
+    "type": "kmer_tfidf", "k_min": 3, "k_max": 5,
+    "min_df": 5, "max_features": 120000, "sublinear_tf": true
+  },
+  "context_count": 32,
+  "tail_weight": 2.0,
+  "stage1_model": {
+    "type": "sgd", "class_weight": "balanced", "alpha": 0.000005,
+    "average": false, "max_iter": 50, "tol": 0.001,
+    "label_n_jobs": 4, "n_jobs": 1
+  },
+  "stage2_model": {
+    "type": "sgd", "class_weight": "balanced", "alpha": 0.0001,
+    "average": false, "max_iter": 200, "tol": 0.001,
+    "label_n_jobs": 4, "n_jobs": 1
+  },
+  "candidates": [
+    {"name": "stage1"},
+    {"name": "scores-only", "mode": "scores-only", "score_scale": 1.0},
+    {"name": "kmer-scores", "mode": "kmer+scores", "score_scale": 0.25,
+      "model": {"alpha": 0.000005}}
+  ],
+  "thresholds": {"shrinkage": 50.0},
+  "output_dir": "artifacts/runs/EXP-20260930-115-oof-label-chain-screen",
+  "metrics_prefix": "artifacts/metrics/EXP-20260930-115-oof-label-chain-screen"
+}

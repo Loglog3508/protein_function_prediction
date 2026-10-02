@@ -1,0 +1,15 @@
+{
+  "experiment_id": "EXP-20260930-111-hybrid-screen",
+  "seed": 42,
+  "seeds": [17,31,42,73,101],
+  "data": {"train_path": "data/train.csv"},
+  "split": {"train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv", "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"},
+  "selection": {"label_count": 100},
+  "features": {"type": "kmer_tfidf", "k_min": 3, "k_max": 5, "min_df": 5, "max_features": 120000, "sublinear_tf": true},
+  "embeddings": {"train_path": "artifacts/runs/EXP-20260929-080-iteration6-esm2-35m-embeddings/train-embeddings.npz", "scales": [0.0,0.1,1.0]},
+  "model": {"type": "sgd", "alpha": 0.000005, "class_weight": "balanced", "max_iter": 1000, "tol": 0.001, "label_n_jobs": 4, "n_jobs": 1},
+  "thresholds": {"shrinkage": 25, "candidates": [0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.96,0.98]},
+  "progress_every": 25,
+  "output_dir": "artifacts/runs/EXP-20260930-111-hybrid-screen",
+  "metrics_prefix": "artifacts/metrics/EXP-20260930-111-hybrid-screen"
+}

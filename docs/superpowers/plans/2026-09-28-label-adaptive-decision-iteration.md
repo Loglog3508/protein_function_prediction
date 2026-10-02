@@ -164,7 +164,7 @@ Expected: 提交 CSV 为 `28,450 × 501`，无空值，标签仅为 `0/1`，ID �
 
 **Files:**
 - Create: `reports/experiments/EXP-20260928-iteration6-label-adaptive.md`
-- Modify: `reports/蛋白质功能预测迭代趋势.xlsx`
+- Modify: `reports/tables/蛋白质功能预测迭代趋势.xlsx`
 
 - [ ] **Step 1: 记录可比指标**
 

@@ -1,0 +1,34 @@
+{
+  "experiment_id": "EXP-20260930-123-frozen-esm20-overfit",
+  "diagnostic_only": true,
+  "encoder": "facebook/esm2_t12_35M_UR50D",
+  "embedding_source": "artifacts\\runs\\EXP-20260929-080-iteration6-esm2-35m-embeddings\\train-embeddings.npz",
+  "pooling": "length_weighted_mean_plus_max",
+  "rows": 20,
+  "embedding_width": 960,
+  "labels": 500,
+  "active_labels": 239,
+  "constant_positive_labels": 0,
+  "constant_negative_labels": 261,
+  "finite_embeddings": true,
+  "id_alignment": true,
+  "model": {
+    "type": "logistic_regression",
+    "class_weight": null,
+    "C": 100000000.0,
+    "max_iter": 5000,
+    "tol": 1e-09,
+    "label_n_jobs": 4,
+    "n_jobs": 1
+  },
+  "macro_f1": 1.0,
+  "elementwise_accuracy": 1.0,
+  "all_rows_exact": true,
+  "wrong_entries": 0,
+  "score_min": 0.0,
+  "score_max": 1.0,
+  "outputs": {
+    "classification_report": "artifacts\\metrics\\EXP-20260930-123-frozen-esm20-overfit-classification-report.txt",
+    "per_label": "artifacts\\metrics\\EXP-20260930-123-frozen-esm20-overfit-per-label.csv"
+  }
+}

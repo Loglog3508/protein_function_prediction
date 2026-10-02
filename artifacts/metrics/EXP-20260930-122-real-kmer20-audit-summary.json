@@ -1,0 +1,102 @@
+{
+  "experiment_id": "EXP-20260930-122-real-kmer20-audit",
+  "diagnostic_only": true,
+  "training_rows": 112734,
+  "sample_ids": [
+    "P000000",
+    "P000001",
+    "P000002",
+    "P000003",
+    "P000004",
+    "P000005",
+    "P000006",
+    "P000007",
+    "P000008",
+    "P000009",
+    "P000010",
+    "P000011",
+    "P000012",
+    "P000013",
+    "P000014",
+    "P000015",
+    "P000016",
+    "P000017",
+    "P000018",
+    "P000019"
+  ],
+  "sample_rows": 20,
+  "label_count": 500,
+  "training_support_min": 1278,
+  "training_support_max": 73654,
+  "training_support_le9": 0,
+  "training_support_le10": 0,
+  "full_data_support_min": 1287,
+  "features": {
+    "type": "kmer_tfidf",
+    "k_min": 3,
+    "k_max": 5,
+    "min_df": 5,
+    "max_features": 120000,
+    "sublinear_tf": true
+  },
+  "feature_resources": {
+    "sparse": true,
+    "vocabulary_size": 191,
+    "block_vocabulary_sizes": null,
+    "statistics_dimensions": 0,
+    "train_shape": [
+      20,
+      191
+    ],
+    "train_nnz": 1037,
+    "train_bytes": 8380,
+    "validation_shape": [
+      20,
+      191
+    ],
+    "validation_nnz": 1037,
+    "validation_bytes": 8380
+  },
+  "overfit_tests": [
+    {
+      "name": "production-settings",
+      "model": {
+        "type": "sgd",
+        "class_weight": "balanced",
+        "alpha": 5e-06,
+        "average": false,
+        "max_iter": 50,
+        "tol": 0.001,
+        "label_n_jobs": 4,
+        "n_jobs": 1
+      },
+      "macro_f1": 1.0,
+      "elementwise_accuracy": 1.0,
+      "all_rows_exact": true,
+      "active_labels": 239,
+      "nonconstant_labels": 239,
+      "wrong_entries": 0,
+      "finite_scores": true
+    },
+    {
+      "name": "memorization-settings",
+      "model": {
+        "type": "sgd",
+        "class_weight": "balanced",
+        "alpha": 1e-07,
+        "average": false,
+        "max_iter": 1000,
+        "tol": 1e-06,
+        "label_n_jobs": 4,
+        "n_jobs": 1
+      },
+      "macro_f1": 1.0,
+      "elementwise_accuracy": 1.0,
+      "all_rows_exact": true,
+      "active_labels": 239,
+      "nonconstant_labels": 239,
+      "wrong_entries": 0,
+      "finite_scores": true
+    }
+  ]
+}
