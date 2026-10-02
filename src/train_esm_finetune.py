@@ -33,6 +33,7 @@ def validate_finetune_config(config: dict[str, Any]) -> None:
         raise ValueError("training.require_cuda must be true")
     if not isinstance(training.get("save_epoch_scores", False), bool):
         raise ValueError("training.save_epoch_scores must be boolean")
+    _positive_weight_limit(training.get("positive_weight_cap", 20.0))
     for key, minimum in (("epochs", 1), ("batch_size", 1), ("gradient_accumulation", 1)):
         if int(training.get(key, minimum)) < minimum:
             raise ValueError(f"training.{key} must be at least {minimum}")
@@ -254,7 +255,21 @@ def _read_ids(path: Path) -> list[str]:
     return ids
 
 
-def _positive_weights(target: np.ndarray, cap: float) -> np.ndarray:
+def _positive_weight_limit(cap: float | str) -> float:
+    """Balanced removes the upper cap while retaining the historical floor of one."""
+    if isinstance(cap, str) and cap == "balanced":
+        return np.inf
+    try:
+        value = float(cap)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("positive_weight_cap must be finite >= 1 or 'balanced'") from exc
+    if isinstance(cap, bool) or not np.isfinite(value) or value < 1:
+        raise ValueError("positive_weight_cap must be finite >= 1 or 'balanced'")
+    return value
+
+
+def _positive_weights(target: np.ndarray, cap: float | str) -> np.ndarray:
+    limit = _positive_weight_limit(cap)
     positive = target.sum(axis=0).astype(np.float32)
     negative = float(len(target)) - positive
     weights = np.divide(
@@ -263,7 +278,7 @@ def _positive_weights(target: np.ndarray, cap: float) -> np.ndarray:
         out=np.ones_like(positive),
         where=positive > 0,
     )
-    return np.clip(weights, 1.0, float(cap)).astype(np.float32)
+    return np.clip(weights, 1.0, limit).astype(np.float32)
 
 
 def _load_model_and_tokenizer(config: dict[str, Any]):
@@ -513,7 +528,7 @@ def run_finetune(config_path: str | Path, *, project_root: str | Path | None = N
     )
     loss_config = config["training"].get("loss", {})
     positive_weight = torch.as_tensor(
-        _positive_weights(train_target, float(config["training"].get("positive_weight_cap", 20.0))),
+        _positive_weights(train_target, config["training"].get("positive_weight_cap", 20.0)),
         dtype=torch.float32,
         device=device,
     )

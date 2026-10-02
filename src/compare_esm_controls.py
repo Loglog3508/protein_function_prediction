@@ -64,6 +64,21 @@ def summarize_scores(target: np.ndarray, scores: np.ndarray, labels: list[str]) 
     return result, pd.concat([default, calibrated], ignore_index=True)
 
 
+def cap_decision_gates(baseline: dict, candidate: dict) -> dict:
+    """Same-epoch cap criteria; shrinking density alone is insufficient."""
+    truth = baseline["crossfit"]["true_positive_rate"]
+    baseline_gap = abs(baseline["crossfit"]["predicted_positive_rate"] - truth)
+    candidate_gap = abs(candidate["crossfit"]["predicted_positive_rate"] - truth)
+    gates = {
+        "calibrated_rate_closer_to_true": candidate_gap < baseline_gap - 1e-12,
+        "calibrated_overpredicted_labels_lower": candidate["crossfit"]["overpredicted_labels"] < baseline["crossfit"]["overpredicted_labels"],
+        "ap_above_same_epoch_asl": candidate["macro_ap"] > baseline["macro_ap"] + 1e-12,
+        "auc_not_below_same_epoch_asl": candidate["macro_auc"] >= baseline["macro_auc"] - 1e-12,
+    }
+    gates["cap_joint_criterion"] = all(gates.values())
+    return gates
+
+
 def read_scores(path: Path, epoch: int, ids: np.ndarray, labels: list[str]) -> np.ndarray:
     with np.load(path, allow_pickle=False) as saved:
         if saved["epoch"].item() != epoch or saved["label_columns"].astype(str).tolist() != labels or not np.array_equal(saved["validation_ids"].astype(str), ids):
@@ -125,7 +140,8 @@ def evaluate_epoch(root: Path, candidate_path: Path, baseline_path: Path, refere
               "gates": {"ap_above_same_epoch_asl": delta["macro_ap"] > 1e-12,
                         "calibrated_predicted_rate_lower": delta["calibrated_predicted_positive_rate"] < -1e-12,
                         "calibrated_positive_excess_lower": delta["calibrated_positive_excess"] < -1e-12,
-                        "calibrated_overpredicted_label_fraction_lower": delta["calibrated_overpredicted_label_fraction"] < -1e-12},
+                        "calibrated_overpredicted_label_fraction_lower": delta["calibrated_overpredicted_label_fraction"] < -1e-12,
+                        **cap_decision_gates(results["baseline"], results["candidate"])},
               "protocol": {"seeds": list(SEEDS), "shrinkage": 25, "global_grid_step": .02,
                            "same_epoch_only": True, "no_parameter_search": True, "f1": "mean of per-seed F1, not F1 of mean counts"},
               "provenance": {"score_sha256": hashes, "baseline_config_sha256": digest(baseline_path),
