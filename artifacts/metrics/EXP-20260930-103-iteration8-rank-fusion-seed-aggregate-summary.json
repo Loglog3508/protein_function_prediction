@@ -1,0 +1,31 @@
+{
+  "experiment_id": "EXP-20260930-103-iteration8-rank-fusion-seed-aggregate",
+  "selected": {
+    "new_weight": 0.25,
+    "shrinkage": 25.0,
+    "mean_crossfit_macro_f1": 0.3382479496821853,
+    "std_crossfit_macro_f1": 0.0010220441855182344,
+    "min_crossfit_macro_f1": 0.337024221459127,
+    "continuous_macro_auc": 0.8244919055304825,
+    "mean_predicted_positive_rate": 0.08882033898305085
+  },
+  "global_threshold": 0.30000001192092896,
+  "threshold_shrinkage": 25.0,
+  "validation_rows": 1062,
+  "test_rows": 28450,
+  "label_count": 500,
+  "predicted_positive_rate": 0.09533223198594025,
+  "submission_validation": {
+    "rows": 28450,
+    "columns": 501,
+    "labels": 500,
+    "positive_rate": 0.09533223198594025
+  },
+  "outputs": {
+    "submission": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\submissions\\EXP-20260930-103-iteration8-rank-fusion-seed-aggregate\\submit_template_v1.csv",
+    "scores": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\runs\\EXP-20260930-103-iteration8-rank-fusion-seed-aggregate\\scores.npz",
+    "thresholds": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-103-iteration8-rank-fusion-seed-aggregate-thresholds.csv",
+    "leaderboard": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-103-iteration8-rank-fusion-seed-aggregate-leaderboard.csv",
+    "seed_results": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-103-iteration8-rank-fusion-seed-aggregate-seed-results.csv"
+  }
+}

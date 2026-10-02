@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-20260930-101-iteration8-rank-fusion",
+  "data": {
+    "train_path": "data/train.csv",
+    "test_path": "data/test.csv"
+  },
+  "base_oof": "artifacts/runs/EXP-20260928-068-iteration5-homology-sgd-blend/best-scores.npz",
+  "new_oof": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
+  "base_test": "artifacts/runs/EXP-20260928-070-iteration5-final-homology-sgd/test-scores.npz",
+  "new_test": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full/scores.npz",
+  "weights": [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35],
+  "shrinkages": [10.0, 15.0, 20.0, 25.0, 30.0, 40.0],
+  "seeds": [17, 31, 42, 73, 101],
+  "minimum_auc": 0.82,
+  "output_dir": "artifacts/runs/EXP-20260930-101-iteration8-rank-fusion",
+  "submission_path": "artifacts/submissions/EXP-20260930-101-iteration8-rank-fusion/submit_template_v1.csv",
+  "metrics_prefix": "artifacts/metrics/EXP-20260930-101-iteration8-rank-fusion"
+}

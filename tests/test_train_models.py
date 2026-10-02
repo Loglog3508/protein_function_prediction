@@ -1,11 +1,112 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
+from threading import Barrier
+from unittest.mock import patch
 
 import numpy as np
+from sklearn.linear_model import SGDClassifier
 
 import src.train
 
 
 class LabelModelTests(unittest.TestCase):
+    def test_parallel_sgd_matches_serial_scores_models_and_progress(self):
+        features = np.array(
+            [
+                [0.0, 0.2],
+                [0.1, 0.5],
+                [0.2, 0.8],
+                [0.4, 0.1],
+                [0.5, 0.4],
+                [0.6, 0.7],
+                [0.8, 0.3],
+                [1.0, 0.9],
+            ],
+            dtype=np.float32,
+        )
+        target = np.array(
+            [
+                [0, 0, 1, 1, 0],
+                [0, 0, 1, 1, 1],
+                [0, 0, 0, 1, 1],
+                [0, 0, 1, 1, 0],
+                [1, 0, 0, 1, 1],
+                [1, 0, 1, 1, 0],
+                [1, 0, 0, 1, 1],
+                [1, 0, 1, 1, 0],
+            ],
+            dtype=np.uint8,
+        )
+        weights = np.array([1, 2, 1, 3, 1, 2, 1, 4], dtype=np.float64)
+        config = {
+            "type": "sgd",
+            "alpha": 0.001,
+            "max_iter": 100,
+            "tol": 1e-4,
+            "average": True,
+            "n_jobs": -1,
+        }
+        serial_stats = {}
+        parallel_stats = {}
+        serial_output = StringIO()
+        parallel_output = StringIO()
+        with redirect_stdout(serial_output):
+            serial_models, serial_scores = src.train.fit_label_models(
+                features, target, features[:3], model_config=config, seed=42,
+                progress_every=3, timing_stats=serial_stats,
+                training_sample_weight=weights,
+            )
+        with redirect_stdout(parallel_output):
+            parallel_models, parallel_scores = src.train.fit_label_models(
+                features, target, features[:3],
+                model_config={**config, "label_n_jobs": 2}, seed=42,
+                progress_every=3, timing_stats=parallel_stats,
+                training_sample_weight=weights,
+            )
+
+        np.testing.assert_array_equal(parallel_scores, serial_scores)
+        self.assertEqual(parallel_scores.shape, (3, 5))
+        self.assertEqual(parallel_scores.dtype, np.float32)
+        self.assertEqual(parallel_models[1], {"constant": 0})
+        self.assertEqual(parallel_models[3], {"constant": 1})
+        self.assertEqual(parallel_output.getvalue(), serial_output.getvalue())
+        self.assertEqual(parallel_models[0].n_jobs, 1)
+        for serial_model, parallel_model in zip(serial_models, parallel_models):
+            if isinstance(serial_model, dict):
+                self.assertEqual(parallel_model, serial_model)
+            else:
+                np.testing.assert_array_equal(parallel_model.coef_, serial_model.coef_)
+                np.testing.assert_array_equal(parallel_model.intercept_, serial_model.intercept_)
+        for stats in (serial_stats, parallel_stats):
+            self.assertGreaterEqual(stats["fit_seconds"], 0)
+            self.assertGreaterEqual(stats["inference_seconds"], 0)
+
+        discarded, discarded_scores = src.train.fit_label_models(
+            features, target, features[:3],
+            model_config={**config, "label_n_jobs": 2}, seed=42,
+            retain_models=False, training_sample_weight=weights,
+        )
+        self.assertEqual(discarded, [])
+        np.testing.assert_array_equal(discarded_scores, serial_scores)
+
+    def test_parallel_sgd_fits_labels_concurrently(self):
+        barrier = Barrier(2)
+
+        class ConcurrentSGD(SGDClassifier):
+            def fit(self, X, y, **kwargs):
+                barrier.wait(timeout=5)
+                return super().fit(X, y, **kwargs)
+
+        features = np.array([[0.0], [0.2], [0.8], [1.0]], dtype=np.float32)
+        target = np.array([[0, 1], [0, 0], [1, 0], [1, 1]], dtype=np.uint8)
+        with patch.object(src.train, "SGDClassifier", ConcurrentSGD):
+            _, scores = src.train.fit_label_models(
+                features, target, features,
+                model_config={"type": "sgd", "label_n_jobs": 2}, seed=42,
+            )
+        self.assertEqual(scores.shape, (4, 2))
+
     def test_training_sample_weights_change_fitted_scores(self):
         features = np.zeros((4, 1), dtype=np.float32)
         target = np.array([[0], [0], [0], [1]], dtype=np.uint8)

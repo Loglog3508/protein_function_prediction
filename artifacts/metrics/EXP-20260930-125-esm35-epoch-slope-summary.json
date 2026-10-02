@@ -1,0 +1,111 @@
+{
+  "experiment_id": "EXP-20260930-125-esm35-last4-full-epoch3",
+  "analysis_only": true,
+  "source_summary": "artifacts/runs/EXP-20260930-125-esm35-last4-full-epoch3/summary.json",
+  "source_scores": "artifacts/runs/EXP-20260930-125-esm35-last4-full-epoch3/validation_scores.npz",
+  "reference_experiment_id": "EXP-20260930-117-esm-last4-full-epoch1",
+  "single_variable_check": {
+    "changed_training_parameter": "epochs",
+    "reference": 1,
+    "current": 3,
+    "all_other_training_config_equal": true
+  },
+  "validation_rows": 1062,
+  "label_count": 500,
+  "best_epoch": 3,
+  "checkpoint_metric": "macro_f1",
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 0.5665218829980759,
+      "validation_macro_f1": 0.14364476351964445,
+      "validation_macro_auc": 0.699419194902634
+    },
+    {
+      "epoch": 2,
+      "loss": 0.5364319543221592,
+      "validation_macro_f1": 0.15364331570932763,
+      "validation_macro_auc": 0.7128103089934956
+    },
+    {
+      "epoch": 3,
+      "loss": 0.5205004362881911,
+      "validation_macro_f1": 0.16185276632001075,
+      "validation_macro_auc": 0.7296348412241555
+    }
+  ],
+  "slopes": {
+    "auc_epoch1_to_epoch2": 0.013391114090861578,
+    "auc_epoch2_to_epoch3": 0.016824532230659828,
+    "auc_epoch1_to_epoch3_total": 0.030215646321521406,
+    "auc_epoch1_to_epoch3_per_epoch": 0.015107823160760703,
+    "auc_second_difference": 0.00343341813979825,
+    "auc_slope_ratio_second_over_first": 1.2563952570713515,
+    "decision": "AUC rises in both intervals and the latest slope increases; extend training before testing pooling.",
+    "plateau_observed": false
+  },
+  "threshold_protocol": "EXP-103 exact label thresholds + selection-fold global grid 0.02 + shrinkage 25 + two-fold merged predictions",
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "seed_results": [
+    {
+      "seed": 17,
+      "seed_macro_f1": 0.18098807656217816,
+      "seed_continuous_macro_auc": 0.7296348412241555,
+      "seed_predicted_positive_rate": 0.13611676082862523
+    },
+    {
+      "seed": 31,
+      "seed_macro_f1": 0.18341142636242416,
+      "seed_continuous_macro_auc": 0.7296348412241555,
+      "seed_predicted_positive_rate": 0.1372542372881356
+    },
+    {
+      "seed": 42,
+      "seed_macro_f1": 0.18503448950389714,
+      "seed_continuous_macro_auc": 0.7296348412241555,
+      "seed_predicted_positive_rate": 0.13986440677966103
+    },
+    {
+      "seed": 73,
+      "seed_macro_f1": 0.18349689614212497,
+      "seed_continuous_macro_auc": 0.7296348412241555,
+      "seed_predicted_positive_rate": 0.13037664783427494
+    },
+    {
+      "seed": 101,
+      "seed_macro_f1": 0.18547628549694622,
+      "seed_continuous_macro_auc": 0.7296348412241555,
+      "seed_predicted_positive_rate": 0.13579472693032016
+    }
+  ],
+  "mean_crossfit_macro_f1": 0.18368143481351412,
+  "std_crossfit_macro_f1": 0.0015756512130494964,
+  "min_crossfit_macro_f1": 0.18098807656217816,
+  "continuous_macro_auc": 0.7296348412241555,
+  "default_05_macro_f1": 0.16185276632001075,
+  "mean_predicted_positive_rate": 0.13588135593220338,
+  "default_05_predicted_positive_rate": 0.25786252354048966,
+  "true_positive_rate": 0.05916572504708098,
+  "reference_mean_crossfit_macro_f1": 0.152413970473923,
+  "delta_crossfit_macro_f1_vs_exp117": 0.03126746433959113,
+  "reference_exp103_mean_crossfit_macro_f1": 0.3382479496821853,
+  "limitations": [
+    "Five seeds vary threshold calibration splits, not independent model training.",
+    "Three measured epochs do not establish the eventual convergence epoch or ceiling.",
+    "Only the best-F1 checkpoint scores are saved; per-epoch AUC comes from complete training history.",
+    "Checkpoint stores model.state_dict only, without optimizer, AMP scaler, or RNG states; exact resume is not supported.",
+    "No new training or leaderboard submission."
+  ],
+  "outputs": {
+    "summary": "artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-summary.json",
+    "history": "artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-history.csv",
+    "seeds": "artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-crossfit-seeds.csv",
+    "plot": "artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-auc.png"
+  }
+}

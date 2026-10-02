@@ -1,0 +1,11 @@
+{
+  "candidate": "alpha-2e-5",
+  "alpha": 2e-05,
+  "average": false,
+  "fixed_macro_f1": 0.2639078500670011,
+  "crossfit_macro_f1": 0.33487323078078224,
+  "predicted_positive_rate": 0.07346607798566183,
+  "fit_seconds": 176.03819009997096,
+  "inference_seconds": 2.4537448000155564,
+  "elapsed_seconds": 181.0273965000015
+}

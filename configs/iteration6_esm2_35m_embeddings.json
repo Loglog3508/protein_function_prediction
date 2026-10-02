@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-20260929-080-iteration6-esm2-35m-embeddings",
+  "train_path": "data/train.csv",
+  "test_path": "data/test.csv",
+  "output_dir": "artifacts/runs/EXP-20260929-080-iteration6-esm2-35m-embeddings",
+  "model_name": "facebook/esm2_t12_35M_UR50D",
+  "local_model_path": "artifacts/runs/models/esm2_t12_35M_UR50D",
+  "local_model_manifest": "artifacts/runs/models/esm2_t12_35M_UR50D/model_manifest.json",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "model_sha256": "e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+  "window_size": 1022,
+  "overlap": 128,
+  "shard_rows": 256,
+  "batch_size": 16,
+  "storage_dtype": "float16",
+  "amp": true,
+  "require_cuda": true
+}

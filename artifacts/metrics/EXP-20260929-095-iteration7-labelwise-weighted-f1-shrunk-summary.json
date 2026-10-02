@@ -1,0 +1,16 @@
+{
+  "experiment_id": "EXP-20260929-095-iteration7-labelwise-weighted-f1-shrunk",
+  "selected": {
+    "candidate": "adaptive",
+    "mean_crossfit_macro_f1": 0.32430998512037634,
+    "std_crossfit_macro_f1": 0.013956042497509615,
+    "min_crossfit_macro_f1": 0.30179995709354207,
+    "continuous_macro_auc": 0.8280838467649557,
+    "seed_count": 5,
+    "mean_predicted_positive_rate": 0.09463954802259887,
+    "auc_complete": true,
+    "eligible": true,
+    "auc_eligible": true
+  },
+  "seed_count": 5
+}

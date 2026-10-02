@@ -1,0 +1,43 @@
+{
+  "experiment_id": "EXP-20260930-119-prior-calibration",
+  "validation_rows": 1062,
+  "label_count": 500,
+  "support_bins": [
+    20,
+    100,
+    1000
+  ],
+  "baseline": {
+    "macro_f1": 0.33838203264229433,
+    "continuous_macro_auc": 0.8244919055304825
+  },
+  "leaderboard": [
+    {
+      "shrinkage": 25.0,
+      "mean_predicted_positive_rate": 0.08376143126177026,
+      "continuous_macro_auc": 0.8236168289363767,
+      "mean_crossfit_macro_f1": 0.3364394001088342,
+      "std_crossfit_macro_f1": 0.0017912847145465293,
+      "min_crossfit_macro_f1": 0.3296220012709332
+    },
+    {
+      "shrinkage": 50.0,
+      "mean_predicted_positive_rate": 0.08347736346516008,
+      "continuous_macro_auc": 0.8236168289363767,
+      "mean_crossfit_macro_f1": 0.3363301966591147,
+      "std_crossfit_macro_f1": 0.0017589745937455377,
+      "min_crossfit_macro_f1": 0.3294374819648152
+    },
+    {
+      "shrinkage": 100.0,
+      "mean_predicted_positive_rate": 0.08324376647834274,
+      "continuous_macro_auc": 0.8236168289363767,
+      "mean_crossfit_macro_f1": 0.33538611219436604,
+      "std_crossfit_macro_f1": 0.0018826524641901723,
+      "min_crossfit_macro_f1": 0.32757815403905405
+    }
+  ],
+  "outputs": {
+    "results": "C:\\Users\\omori\\Omori-s-Codings\\protein_function_prediction\\artifacts\\metrics\\EXP-20260930-119-prior-calibration-results.csv"
+  }
+}

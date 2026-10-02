@@ -221,6 +221,62 @@ def select_label_thresholds(
     return thresholds, pd.DataFrame(rows)
 
 
+def select_label_thresholds_exact(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    *,
+    global_threshold: float = 0.5,
+) -> tuple[np.ndarray, pd.DataFrame]:
+    """Select per-label F1 thresholds from observed score boundaries.
+
+    Unlike :func:`select_label_thresholds`, this evaluates every ranked score
+    boundary for each label, so a coarse global candidate grid cannot hide the
+    best decision boundary.
+    """
+    y_true, scores = _validate_inputs(y_true, scores)
+    thresholds = np.full(scores.shape[1], global_threshold, dtype=np.float32)
+    rows = []
+    sample_count = scores.shape[0]
+    for label_index in range(scores.shape[1]):
+        target = y_true[:, label_index].astype(bool)
+        support = int(target.sum())
+        best_threshold = float(global_threshold)
+        best_f1 = 0.0
+        if support:
+            order = np.argsort(-scores[:, label_index], kind="mergesort")
+            ranked_target = target[order]
+            ranked_scores = scores[order, label_index]
+            true_positive = np.cumsum(ranked_target, dtype=np.int64)
+            predicted_positive = np.arange(1, sample_count + 1, dtype=np.int64)
+            false_positive = predicted_positive - true_positive
+            false_negative = support - true_positive
+            denominator = 2 * true_positive + false_positive + false_negative
+            f1 = np.divide(
+                2 * true_positive,
+                denominator,
+                out=np.zeros(sample_count, dtype=np.float64),
+                where=denominator != 0,
+            )
+            best_f1 = float(f1.max())
+            candidates = np.flatnonzero(np.isclose(f1, best_f1))
+            best_index = min(
+                candidates,
+                key=lambda index: abs(float(ranked_scores[index]) - global_threshold),
+            )
+            best_threshold = float(ranked_scores[best_index])
+        thresholds[label_index] = best_threshold
+        rows.append(
+            {
+                "label_index": label_index,
+                "support": support,
+                "threshold": best_threshold,
+                "f1": best_f1,
+                "used_global_fallback": support == 0,
+            }
+        )
+    return thresholds, pd.DataFrame(rows)
+
+
 def shrink_label_thresholds(
     label_thresholds: np.ndarray,
     supports: np.ndarray,

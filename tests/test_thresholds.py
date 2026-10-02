@@ -11,6 +11,7 @@ from src.thresholds import (
     select_label_auc_thresholds,
     select_global_threshold,
     select_label_thresholds,
+    select_label_thresholds_exact,
     shrink_label_thresholds,
     threshold_predictions,
     reorder_label_thresholds,
@@ -42,6 +43,17 @@ class ThresholdTests(unittest.TestCase):
             thresholds, diagnostics["support"].to_numpy(), global_threshold=0.5, shrinkage=2
         )
         np.testing.assert_allclose(shrunk, [0.5, 0.5])
+
+    def test_exact_label_thresholds_use_observed_score_boundaries(self):
+        target = np.array([[1], [0], [0], [0]], dtype=np.uint8)
+        scores = np.array([[0.61], [0.60], [0.21], [0.20]], dtype=np.float32)
+
+        thresholds, diagnostics = select_label_thresholds_exact(
+            target, scores, global_threshold=0.8
+        )
+
+        np.testing.assert_allclose(thresholds, [0.61])
+        self.assertEqual(diagnostics.iloc[0]["f1"], 1.0)
 
     def test_prediction_and_samplewise_summary(self):
         predictions = threshold_predictions(self.scores, np.array([0.5, 0.5]))

@@ -1,0 +1,13 @@
+{
+  "source": "train",
+  "model_name": "artifacts/runs/models/esm2_t12_35M_UR50D",
+  "model_revision": "unresolved",
+  "window_size": 1022,
+  "overlap": 128,
+  "pooling": "length_weighted_mean_plus_max",
+  "dtype": "float16",
+  "row_count": 2,
+  "source_sha256": "35352f72068a31878a191e7f261a8ec3fa18737e042ac33da90afde4ead321d2",
+  "feature_width": 960,
+  "python_version": "3.13.2"
+}

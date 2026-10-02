@@ -1,0 +1,59 @@
+{
+  "experiment_id": "EXP-20260930-126-esm-provenance-audit",
+  "model_experiment_id": "EXP-20260930-117-esm-last4-full-epoch1",
+  "diagnostic_only": true,
+  "validation_rows": 1062,
+  "label_count": 500,
+  "threshold_protocol": "EXP-103 exact label thresholds + selection-fold global grid 0.02 + shrinkage 25 + two-fold merged predictions",
+  "seeds": [
+    17,
+    31,
+    42,
+    73,
+    101
+  ],
+  "seed_results": [
+    {
+      "seed": 17,
+      "seed_macro_f1": 0.15260373853718273,
+      "seed_continuous_macro_auc": 0.6994043221362165,
+      "seed_predicted_positive_rate": 0.17664595103578154
+    },
+    {
+      "seed": 31,
+      "seed_macro_f1": 0.1509007694298311,
+      "seed_continuous_macro_auc": 0.6994043221362165,
+      "seed_predicted_positive_rate": 0.17246892655367232
+    },
+    {
+      "seed": 42,
+      "seed_macro_f1": 0.15142143073867564,
+      "seed_continuous_macro_auc": 0.6994043221362165,
+      "seed_predicted_positive_rate": 0.19239736346516007
+    },
+    {
+      "seed": 73,
+      "seed_macro_f1": 0.15335326951554232,
+      "seed_continuous_macro_auc": 0.6994043221362165,
+      "seed_predicted_positive_rate": 0.18145762711864408
+    },
+    {
+      "seed": 101,
+      "seed_macro_f1": 0.15379064414838314,
+      "seed_continuous_macro_auc": 0.6994043221362165,
+      "seed_predicted_positive_rate": 0.18110922787193973
+    }
+  ],
+  "mean_crossfit_macro_f1": 0.152413970473923,
+  "std_crossfit_macro_f1": 0.0011034887891825274,
+  "min_crossfit_macro_f1": 0.1509007694298311,
+  "continuous_macro_auc": 0.6994043221362165,
+  "default_05_macro_f1": 0.14361165054182054,
+  "mean_predicted_positive_rate": 0.18081581920903955,
+  "true_positive_rate": 0.05916572504708098,
+  "source": "artifacts/runs/EXP-20260930-117-esm-last4-full-epoch1/validation_scores.npz",
+  "limitations": [
+    "Five seeds vary threshold calibration splits, not model training.",
+    "No new model and no leaderboard submission."
+  ]
+}

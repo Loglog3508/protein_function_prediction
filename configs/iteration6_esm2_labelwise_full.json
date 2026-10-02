@@ -1,0 +1,38 @@
+{
+  "experiment_id": "EXP-20260929-082-iteration6-esm2-labelwise-full",
+  "seed": 42,
+  "data": {
+    "train_path": "data/train.csv"
+  },
+  "split": {
+    "kind": "iteration4_tail",
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+  },
+  "embeddings": {
+    "train": "artifacts/runs/EXP-20260929-080-iteration6-esm2-35m-embeddings/train-embeddings.npz",
+    "test": "artifacts/runs/EXP-20260929-080-iteration6-esm2-35m-embeddings/test-embeddings.npz"
+  },
+  "model": {
+    "type": "sgd",
+    "class_weight": "balanced",
+    "alpha": 0.0001,
+    "average": false,
+    "max_iter": 100,
+    "tol": 0.001,
+    "n_jobs": 1,
+    "label_n_jobs": 8
+  },
+  "screening": {
+    "label_count": 60,
+    "validation_size": 0.2,
+    "alphas": [0.00001, 0.0001, 0.001, 0.01]
+  },
+  "support_strata": [
+    {"name": "high", "min_support": 5000},
+    {"name": "medium", "min_support": 2000, "max_support": 4999},
+    {"name": "low", "max_support": 1999}
+  ],
+  "output_dir": "artifacts/runs/EXP-20260929-082-iteration6-esm2-labelwise-full",
+  "metrics_prefix": "artifacts/metrics/EXP-20260929-082-iteration6-esm2-labelwise-full"
+}

@@ -1,0 +1,9 @@
+{
+  "experiment_id": "EXP-20260929-080-esm2-35m-smoke",
+  "model_name": "artifacts/runs/models/esm2_t12_35M_UR50D",
+  "model_revision": "unresolved",
+  "outputs": [
+    "artifacts\\runs\\EXP-20260929-080-esm2-35m-smoke-embeddings\\train-embeddings.npz",
+    "artifacts\\runs\\EXP-20260929-080-esm2-35m-smoke-embeddings\\test-embeddings.npz"
+  ]
+}

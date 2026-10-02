@@ -1,0 +1,165 @@
+[
+  {
+    "iteration": "第七次（产物复核）",
+    "date": "2026-09-29",
+    "status": "complete",
+    "method": "标签级融合筛选：当前 EXP-095 自适应产物",
+    "validation": "尾段 1,062 样本、500 标签；原产物五 seed 汇总",
+    "f1": 0.32430998512037634,
+    "std": 0.013956042497509615,
+    "auc": 0.8280838467649557,
+    "conclusion": "与原报告快照不一致，已加审计注释；不替换回退。报告：iteration7-labelwise-weighted",
+    "source": "artifacts/metrics/EXP-20260929-095-iteration7-labelwise-weighted-f1-shrunk-summary.json",
+    "sourceKeys": [
+      "selected"
+    ]
+  },
+  {
+    "iteration": "第八次",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "25% ESM + 75% 同源/SGD，精确收缩阈值",
+    "validation": "固定尾段 1,062 样本、500 标签；五 seed 两折合并",
+    "f1": 0.3382479496821853,
+    "std": 0.0010220441855182344,
+    "auc": 0.8244919055304825,
+    "conclusion": "EXP-103 为现有完整标签回退；未达到 0.5。报告：iteration8-rank-fusion",
+    "source": "artifacts/metrics/EXP-20260930-103-iteration8-rank-fusion-seed-aggregate-summary.json",
+    "sourceKeys": [
+      "selected"
+    ]
+  },
+  {
+    "iteration": "联合特征筛选（111）",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "k-mer + 0.1 倍 ESM 表征联合 SGD",
+    "validation": "固定尾段 1,062 样本、支持度分层 100 标签；五 seed",
+    "f1": 0.3184272015000932,
+    "std": 0.001091803390844629,
+    "auc": 0.8091421014599195,
+    "conclusion": "仅比配对 k-mer +0.001288；不扩展 500 标签。报告：EXP-20260930-111-hybrid-screen",
+    "source": "artifacts/metrics/EXP-20260930-111-hybrid-screen-summary.json",
+    "sourceKeys": [
+      "leaderboard",
+      0
+    ]
+  },
+  {
+    "iteration": "第九次",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "有效支持度分层权重：1 / 1.25 / 1.5（EXP-113）",
+    "validation": "固定尾段 1,062 样本、支持度分层 100 标签；五 seed",
+    "f1": 0.31683633498451547,
+    "std": 0.0006093002873030889,
+    "auc": 0.803282281363617,
+    "conclusion": "配对增益 0.000415，2/5 seed 改善；不扩展。报告：iteration9-labelwise-weight",
+    "source": "artifacts/metrics/EXP-20260930-113-labelwise-weight-corrected-screen-summary.json",
+    "sourceKeys": [
+      "best_candidate"
+    ]
+  },
+  {
+    "iteration": "第十次",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "嵌套 OOF 标签链：120k k-mer + 32 个一级 OOF 标签分数",
+    "validation": "固定尾段 1,062 样本、支持度分层 100 标签；外层/内层各两折、五 seed",
+    "f1": 0.32162199125705476,
+    "std": 0.0013508362891496183,
+    "auc": 0.8165524381466841,
+    "conclusion": "比本轮一级基线 +0.005707，五 seed 全部提升；扩展到 500 标签。报告：iteration10-oof-label-chain",
+    "source": "artifacts/metrics/EXP-20260930-115-oof-label-chain-screen-summary.json",
+    "sourceKeys": [
+      "leaderboard",
+      0
+    ]
+  },
+  {
+    "iteration": "第十一次",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "500 标签嵌套 OOF；120k k-mer + 64 个上下文；配对一级回退",
+    "validation": "固定尾段 1,062 样本、500 标签；外层/内层各两折、五 seed",
+    "f1": 0.3096582273393964,
+    "std": 0.0005914280172197297,
+    "auc": 0.80573267878405,
+    "conclusion": "二级链 F1 0.309285，较一级下降 0.000373；停用当前配置，生产回退仍为 EXP-103。报告：iteration11-oof-label-chain-full",
+    "source": "artifacts/metrics/EXP-20260930-116-oof-label-chain-full-summary.json",
+    "sourceKeys": [
+      "leaderboard",
+      0
+    ]
+  },
+  {
+    "iteration": "第十二次",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "原始 120k k-mer + 理化性质分组 3–6-mer（权重 0.25）",
+    "validation": "固定尾段 1,062 样本、支持度分层 100 标签；五 seed",
+    "f1": 0.3172363427171758,
+    "std": 0.0012993118180230946,
+    "auc": 0.8049595379911301,
+    "conclusion": "较配对原始 k-mer +0.000814；预测正例率上升，不扩展 500 标签。报告：iteration12-grouped-kmer",
+    "source": "artifacts/metrics/EXP-20260930-118-grouped-kmer-screen-summary.json",
+    "sourceKeys": [
+      "best_candidate"
+    ]
+  },
+  {
+    "iteration": "第十三次（校准诊断）",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "EXP-103 连续分数的支持度分层 OOF Platt 校准",
+    "validation": "固定尾段 1,062 样本、500 标签；五个校准 seed 与五个阈值 seed",
+    "f1": 0.3364394001088342,
+    "std": 0.0017912847145465293,
+    "auc": 0.8236168289363767,
+    "conclusion": "正例率下降但 F1 下降 0.001943；校准不能替代排序改进，诊断结果不替换 EXP-103。报告：iteration13-prior-calibration",
+    "source": "artifacts/metrics/EXP-20260930-119-prior-calibration-summary.json",
+    "sourceKeys": [
+      "leaderboard",
+      0
+    ]
+  },
+  {
+    "iteration": "第十四次（误差诊断）",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "EXP-103 逐标签 classification_report、混淆矩阵与 20 条过拟合测试",
+    "validation": "固定尾段 1,062 样本、500 标签；seed-42 两折阈值交叉拟合",
+    "f1": 0.3385517949962983,
+    "std": 0.0,
+    "auc": 0.8244919055304825,
+    "conclusion": "70 个标签验证正例不超过 10；identity+RF 过拟合 F1=1.0，确认瓶颈在低频表示与排序；已转 focal BCE。报告：iteration14-f1-diagnostics",
+    "source": "artifacts/metrics/EXP-20260930-120-f1-diagnostics-crossfit42-summary.json",
+    "sourceKeys": []
+  },
+  {
+    "iteration": "第十五次（ESM 审计与 EXP-117 复核）",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "ESM-2 35M 最后4层微调1 epoch；模型身份、标签列和窗口审计",
+    "validation": "固定尾段 1,062 样本、500 标签；与 EXP-103 相同五 seed 精确收缩阈值",
+    "f1": 0.152413970473923,
+    "std": 0.0011034887891825274,
+    "auc": 0.6994043221362165,
+    "conclusion": "ESM 单源 F1 0.152414；过预测18.08%；单窗口 AUC仍仅0.702856；125多轮对照运行中，不替换103。报告：EXP-20260930-126-esm-provenance-audit",
+    "source": "artifacts/metrics/EXP-20260930-126-esm117-crossfit-summary.json",
+    "sourceKeys": []
+  },
+  {
+    "iteration": "第十六次（EXP-125 轮数斜率）",
+    "date": "2026-09-30",
+    "status": "complete",
+    "method": "ESM-2 35M 最后4层微调；仅将 EXP-117 的 1 epoch 延长至 3 epoch",
+    "validation": "固定尾段 1,062 样本、500 标签；五 seed 精确收缩阈值、两折预测合并",
+    "f1": 0.18368143481351412,
+    "std": 0.0015756512130494964,
+    "auc": 0.7296348412241555,
+    "conclusion": "AUC 0.699419→0.712810→0.729635；两段增量+0.013391/+0.016825，未趋平，优先延长训练再试池化；不替换103。报告：EXP-20260930-125-esm35-epoch-slope",
+    "source": "artifacts/metrics/EXP-20260930-125-esm35-epoch-slope-summary.json",
+    "sourceKeys": []
+  }
+]
