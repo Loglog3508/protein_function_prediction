@@ -1,0 +1,38 @@
+{
+  "experiment_id": "EXP-20261002-134-esm35-bce-cap5-epoch6",
+  "seed": 42,
+  "model_name": "facebook/esm2_t12_35M_UR50D",
+  "model_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "window_size": 1022,
+  "overlap": 128,
+  "pooling": "mean_max",
+  "head_hidden_size": 512,
+  "dropout": 0.1,
+  "unfreeze_last_n_layers": 4,
+  "data": {
+    "train_path": "data/train.csv"
+  },
+  "split": {
+    "kind": "iteration4_tail",
+    "train_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv"
+  },
+  "training": {
+    "require_cuda": true,
+    "epochs": 6,
+    "save_epoch_scores": true,
+    "batch_size": 8,
+    "gradient_accumulation": 2,
+    "learning_rate": 0.0005,
+    "encoder_learning_rate": 1e-05,
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "amp": true,
+    "positive_weight_cap": 5.0,
+    "checkpoint_metric": "macro_f1",
+    "loss": {
+      "name": "bce"
+    }
+  },
+  "output_dir": "artifacts/runs/EXP-20261002-134-esm35-bce-cap5-epoch6"
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "updated_by": "suite32_terminal_attribution_20261004",
+  "A": {
+    "state": "confirmed_for_completed_suite",
+    "best_cap_setting": "5（仅中层；全局无合格设置）",
+    "main_stratum_benefiting": "中（cap5）；低层计数下降但AP/F1受损",
+    "cap_is_main_cause": "否（A组全局）",
+    "evidence": [
+      {"experiment_number": 131, "epoch": 6, "summary_sha256": "2660b9835f401c89a0ad59cb8a03dfec19be61ddc48afe6b7d7eba435d17e3e2", "audit_sha256": "95069df47912feb479bff6c0a5f7972950df0560f6f3566398bd3b041c9032ef"},
+      {"experiment_number": 132, "epoch": 6, "summary_sha256": "986709c7dd08b27983fe758537ca21323f82f645703a2cfb2705ef7421fa4497", "audit_sha256": "224f754c25db07631ba9d6b82f2f440a8af2e02072c4a2da561b68376130c535"},
+      {"experiment_number": 133, "epoch": 6, "summary_sha256": "9bd712b88b759ca3adb79a297d5374d74664a3feea39e3a7f2408a95b887bc08", "audit_sha256": "cb69f58350b37be9324c4f2cefac25c6152dd018e50ca299df2c57880cdcf9dd"}
+    ]
+  },
+  "B": {
+    "state": "confirmed_for_completed_suite",
+    "best_cap_setting": "5（部分复现）",
+    "main_stratum_benefiting": "低（AP与过预测改善最大；中层F1改善）",
+    "cap_is_main_cause": "部分（损失×cap复现AP/过预测改善，但AUC下降）",
+    "criterion": "AP提高且校准过预测下降；同时报告AUC和校准率",
+    "evidence": [
+      {"experiment_number": 134, "epoch": 6, "summary_sha256": "8b383a48fbe17d413990be449bae42fd1a69ce9fa010372a450b9238c544d200", "audit_sha256": "47c637f53b0fbfa0020eb40b611e1ce61afda19489fe2eccb06ee25b8b6ad597"}
+    ]
+  },
+  "C": {
+    "state": "confirmed_for_completed_suite",
+    "best_cap_setting": "5（无联合增益）",
+    "main_stratum_benefiting": "无（中/低层仅过预测下降，AP均下降）",
+    "cap_is_main_cause": "否（模型×cap未复现）",
+    "criterion": "同时报告AUC/AP/校准过预测；不以AUC单项宣布胜出",
+    "evidence": [
+      {"experiment_number": 135, "epoch": 8, "summary_sha256": "efd48fa1f15a9a3890c3dc6ddcadc5c3593bee12ef0347a2d6b0b8bae783956c", "audit_sha256": "7697d9bcdc940d066e1b4c0cf83598e5cba0f462853d6b4e15804f86ed452cf5"}
+    ]
+  },
+  "next_branch": "cap未被判为全局主因（B仅部分复现，C未复现）→封盘cap路线，转分层逐标签条件校准；不启动重配ESM+EXP-103融合",
+  "mechanism_note": "无上限导致低层过度加权恶化有数值证据；高层先验和低层决策层解释为待验证假说，不能由标签计数不变推断率和超额不敏感",
+  "conditional_calibration_config": "configs/iteration22_esm35_support_conditional_calibration_prepare.json",
+  "conditional_calibration_started": false
+}

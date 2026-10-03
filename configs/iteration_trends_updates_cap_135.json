@@ -1,0 +1,17 @@
+[
+  {
+    "iteration": "cap对照 EXP-135（终点e8）",
+    "date": "2026-10-04",
+    "status": "complete",
+    "method": "facebook/esm2_t30_150M_UR50D，asymmetric_bce，cap=5",
+    "validation": "固定尾段1,062样本、500标签；五seed精确收缩阈值；终点登记",
+    "f1": 0.21635963371195557,
+    "std": 0.000823161440274158,
+    "auc": 0.7696799282853696,
+    "conclusion": "对EXP-129同轮；高/中/低同步审计；等待32轮统一归因。报告EXP-135。",
+    "source": "artifacts/metrics/EXP-20261002-135-esm150-asl-cap5-epoch8-audited-results-summary.json",
+    "sourceKeys": [
+      "selected"
+    ]
+  }
+]

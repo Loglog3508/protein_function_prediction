@@ -1,0 +1,17 @@
+[
+  {
+    "iteration": "cap对照 EXP-133（终点e6）",
+    "date": "2026-10-03",
+    "status": "complete",
+    "method": "facebook/esm2_t12_35M_UR50D，asymmetric_bce，cap=max(1,neg/pos)",
+    "validation": "固定尾段1,062样本、500标签；五seed精确收缩阈值；终点登记",
+    "f1": 0.20002894045962852,
+    "std": 0.0030589226675782942,
+    "auc": 0.7676047923335462,
+    "conclusion": "对EXP-127同轮；高/中/低同步审计；等待32轮统一归因。报告EXP-133。",
+    "source": "artifacts/metrics/EXP-20261002-133-esm35-asl-balanced-epoch6-audited-results-summary.json",
+    "sourceKeys": [
+      "selected"
+    ]
+  }
+]
