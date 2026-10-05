@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "prediction_shape": [
+    5,
+    1062,
+    500
+  ],
+  "metrics": {
+    "macro_f1": 0.21219378352363077,
+    "predicted_positive_rate": 0.12227156308851227,
+    "positive_excess": 33792.00000000001,
+    "overpredicted_labels": 445,
+    "tp": 19143.8,
+    "fp": 45782.4,
+    "fn": 12273.199999999999
+  },
+  "high_stratum_excess_share": 0.7933652935606059,
+  "default05_to_crossfit_prediction_ratio": 1.7905242547089162,
+  "safe_prediction_copy": "artifacts\\runs\\AUDIT-20261005-exp134-restored\\epoch06-historical-reproduction-unicode-ids.npz",
+  "safe_prediction_sha256": "692fe0ccb8d42317da489e03abc51a228b47d429b4c8fcb9aa1ec7f6d03df685",
+  "numeric_predictions_exactly_equal_original_audit": true,
+  "fixed_ID_order_exact": true,
+  "original_audit_copy_preserved": true
+}

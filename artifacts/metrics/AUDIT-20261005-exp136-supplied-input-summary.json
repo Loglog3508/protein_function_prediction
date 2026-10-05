@@ -1,0 +1,80 @@
+{
+  "audit_id": "AUDIT-20261005-exp136-supplied-input",
+  "status": "rejected_bound_input_mismatch",
+  "source_path": "epoch06-validation_scores.npz",
+  "actual_file_sha256": "d0e81890f1ec54c18cd92a3e8cd488b13a5e73535fa1e65a3861275c97e1a6d4",
+  "required_file_sha256": "ce1cf6e2872e35ad057532407cf897d0b69425c001d157dade6d0a4c6a476ccb",
+  "file_hash_matches": false,
+  "epoch": 6,
+  "epoch_matches": true,
+  "fixed_validation_ids_exact": true,
+  "label_order_exact": true,
+  "finite_probability_matrix": true,
+  "arrays": {
+    "epoch": {
+      "shape": [],
+      "dtype": "int64",
+      "content_sha256": "23d7f42b1cdc1f0d492ebd756ed0fe8003995dda554d99418d47a81813650207"
+    },
+    "validation_ids": {
+      "shape": [
+        1062
+      ],
+      "dtype": "<U7",
+      "content_sha256": "f5c1b53d072e9593f9c6297f4eb7cd35f669b3e3630fd652b978f0c8d374995c"
+    },
+    "label_columns": {
+      "shape": [
+        500
+      ],
+      "dtype": "<U9",
+      "content_sha256": "3b3c719c0a5d361f1147bebb12e91118cd5cdbb42a4187ef2d29e008f0de338b"
+    },
+    "validation_scores": {
+      "shape": [
+        1062,
+        500
+      ],
+      "dtype": "float32",
+      "content_sha256": "23a89694af4d7195a1d99c6477da6a08a9c91ca30a95aea77e6a3553bf8ffc06"
+    }
+  },
+  "true_positive_count": 31417,
+  "metrics": {
+    "raw_AUC": {
+      "actual": 0.7676745076578432,
+      "historical": 0.7680116652409509,
+      "delta": -0.0003371575831077056,
+      "matches_at_1e-12": false
+    },
+    "raw_AP": {
+      "actual": 0.1764447793113751,
+      "historical": 0.17202494367063487,
+      "delta": 0.004419835640740222,
+      "matches_at_1e-12": false
+    },
+    "default05_F1": {
+      "actual": 0.16665325035456244,
+      "historical": 0.17690375900368668,
+      "delta": -0.010250508649124246,
+      "matches_at_1e-12": false
+    }
+  },
+  "per_label_mismatch_counts_of_500": {
+    "roc_auc": 500,
+    "average_precision": 500,
+    "score_mean": 500,
+    "score_min": 500,
+    "score_max": 500
+  },
+  "conclusion": "Raw-score metrics differ from archived EXP-127 epoch06. Recompression alone cannot explain the mismatch; original provenance is needed. This file is not accepted as the bound EXP-136 input.",
+  "conditional_calibration_started": false,
+  "thresholds_fitted": false,
+  "source_modified": false,
+  "historical_artifacts_modified": false,
+  "reference_sha256": {
+    "configs\\iteration22_esm35_support_conditional_calibration_prepare.json": "0b54d7d632aed86a3ea98396cda9fa9b91083299283ccf638a5566213a9df7f8",
+    "artifacts\\metrics\\EXP-20261001-128-esm35-epoch-diagnostics-summary.json": "de1c5a7ce2704ffc3502032dd3ee816601e17d58e035b75af78c3a6308c86edc",
+    "artifacts\\metrics\\EXP-20261001-128-esm35-epoch-diagnostics-per-label.csv": "c474910efa2cfe9913ceb2178ac4f5ffaf4194c380eea6370060fe9e9fc21b0e"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "experiment_id": "EXP-20261004-136-esm35-support-conditional-calibration",
+  "status": "authorized_waiting_for_matching_bound_input",
+  "execution": {
+    "enabled": true,
+    "runner": "src.esm_conditional_calibration",
+    "requires_implementation": false,
+    "requires_B_C_final_review": false,
+    "auto_enqueue": false,
+    "cpu_only": true,
+    "training_allowed": false,
+    "test_prediction_allowed": false,
+    "submission_allowed": false,
+    "fusion_allowed": false,
+    "overwrite_allowed": false
+  },
+  "input": {
+    "baseline_id": "EXP-20260930-127-esm35-last4-full-epoch10",
+    "epoch": 6,
+    "scores_path": "artifacts/runs/EXP-20260930-127-esm35-last4-full-epoch10/epochs/epoch06-validation_scores.npz",
+    "scores_sha256": "ce1cf6e2872e35ad057532407cf897d0b69425c001d157dade6d0a4c6a476ccb",
+    "train_path": "data/train.csv",
+    "training_ids": "artifacts/metrics/splits/iteration4_tail/train_ids.csv",
+    "validation_ids": "artifacts/metrics/splits/iteration4_tail/validation_ids.csv",
+    "label_order": "label_0..label_499",
+    "expected_validation_rows": 1062,
+    "expected_label_count": 500,
+    "preserve_seed42_splits": true
+  },
+  "stratification": {
+    "source": "training_ids_only",
+    "rule": "np.array_split(np.argsort(train_support, kind='stable'), 3)",
+    "tie_break": "original_label_order",
+    "groups_in_ascending_order": [
+      "low",
+      "middle",
+      "high"
+    ],
+    "expected_group_sizes": [
+      167,
+      167,
+      166
+    ],
+    "primary_stratum": "middle"
+  },
+  "calibration": {
+    "method": "label_exact_thresholds_shrunk_to_support_stratum_prior",
+    "score_transform": "identity",
+    "shared_platt": false,
+    "seeds": [
+      17,
+      31,
+      42,
+      73,
+      101
+    ],
+    "crossfit": "two_fold_bidirectional",
+    "fold_partition": "np.array_split(np.random.default_rng(seed).permutation(1062), 2)",
+    "selection_data": "selection_fold_only",
+    "prior_objective": "macro_f1_skip_empty_within_stratum",
+    "prior_grid": {
+      "start": 0.02,
+      "stop_exclusive": 1.0,
+      "step": 0.02
+    },
+    "prior_tie_break": "closest_to_0.5_then_first_grid_candidate_as_historical_reference",
+    "label_threshold": "src.thresholds.select_label_thresholds_exact_with_global_threshold_0.5",
+    "label_thresholds_shared_with_paired_reference": true,
+    "label_threshold_tie_break": "reuse_historical_reference_exactly",
+    "unchanged_strata_thresholds_exactly_reuse_baseline": true,
+    "shrinkage": 25.0,
+    "reliability_support": "positive_count_in_selection_fold",
+    "threshold_formula": "w*t_label+(1-w)*t_prior; w=n_selection_positive/(n_selection_positive+25)",
+    "zero_positive_label": "use_applicable_prior_and_record_fallback",
+    "degenerate_stratum": "explicitly_record_fallback_to_selection_global_prior",
+    "variants": [
+      {
+        "name": "baseline_global_prior",
+        "stratum_prior_for": [],
+        "role": "paired_reference"
+      },
+      {
+        "name": "middle_only_stratum_prior",
+        "stratum_prior_for": [
+          "middle"
+        ],
+        "role": "primary"
+      },
+      {
+        "name": "all_strata_prior",
+        "stratum_prior_for": [
+          "low",
+          "middle",
+          "high"
+        ],
+        "role": "diagnostic"
+      }
+    ],
+    "baseline_reference_implementation": "src.diagnose_esm_epochs.crossfit_predictions",
+    "candidate_historical_tie_difference_must_be_audited": true,
+    "outer_evaluation_cannot_select_variant": true,
+    "density_target_usage": "reporting_only_not_threshold_selection",
+    "full_validation_fit": false
+  },
+  "evaluation": {
+    "strata": [
+      "all",
+      "high",
+      "middle",
+      "low"
+    ],
+    "metrics": [
+      "calF1",
+      "raw_AUC",
+      "raw_AP",
+      "cal_pos_rate",
+      "true_pos_rate",
+      "overpred_labels",
+      "excess",
+      "TP",
+      "FP",
+      "FN"
+    ],
+    "raw_AP_AUC_must_equal_paired_baseline": true,
+    "per_stratum_density_target": "own_true_prevalence",
+    "global_true_prevalence": 0.05916572504708098,
+    "f1_aggregation": "mean_of_per_seed_per_label_F1_skip_empty",
+    "count_aggregation": "mean_per_label_prediction_counts_across_five_seeds_then_excess",
+    "promotion_requires": [
+      "paired_calF1_improves",
+      "density_gap_decreases",
+      "overpred_and_excess_decrease",
+      "FP_FN_tradeoff_reported"
+    ],
+    "diagnostic_selection_not_independent_test_score": true,
+    "seeds_are_calibration_splits_not_independent_training_runs": true
+  },
+  "output_prefix": "artifacts/metrics/EXP-20261004-136-esm35-support-conditional-calibration",
+  "output_dir": "artifacts/runs/EXP-20261004-136-esm35-support-conditional-calibration",
+  "prepared_config": "configs/iteration22_esm35_support_conditional_calibration_prepare.json",
+  "final_review": {
+    "decisions_path": "configs/esm_cap_attribution_decisions.json",
+    "decisions_sha256": "cc3b0ada733fd8d6b87c728d6ed6d5976e2ec4ef7b651188435c5596e00a5970",
+    "review_basis": "A/B/C confirmed_for_completed_suite in current branch",
+    "execution_authorization": "User: 执行双折评估，完全按照分支计划做"
+  }
+}
