@@ -1,0 +1,335 @@
+{
+  "mapping": {
+    "A": "W",
+    "C": "P",
+    "D": "L",
+    "E": "N",
+    "F": "T",
+    "G": "I",
+    "H": "E",
+    "I": "R",
+    "K": "Y",
+    "L": "Q",
+    "M": "M",
+    "N": "A",
+    "P": "G",
+    "Q": "F",
+    "R": "S",
+    "S": "C",
+    "T": "H",
+    "V": "K",
+    "W": "V",
+    "Y": "D"
+  },
+  "matches": [
+    {
+      "protein_id": "P079081",
+      "external_accession": "A0JNW5",
+      "residues_compared": 1464,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P050924",
+      "external_accession": "A0JP26",
+      "residues_compared": 581,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P024210",
+      "external_accession": "A0PK11",
+      "residues_compared": 232,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P006829",
+      "external_accession": "A1A519",
+      "residues_compared": 330,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P078059",
+      "external_accession": "A1X283",
+      "residues_compared": 911,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P057975",
+      "external_accession": "A5PLL7",
+      "residues_compared": 270,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P038142",
+      "external_accession": "A6NCS4",
+      "residues_compared": 301,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P040985",
+      "external_accession": "A6NGG8",
+      "residues_compared": 1288,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P109681",
+      "external_accession": "A6NI61",
+      "residues_compared": 221,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P031513",
+      "external_accession": "A7MCY6",
+      "residues_compared": 615,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P002947",
+      "external_accession": "A7MD48",
+      "residues_compared": 611,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P004707",
+      "external_accession": "A8MQ03",
+      "residues_compared": 144,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P020844",
+      "external_accession": "A8MW99",
+      "residues_compared": 385,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P109080",
+      "external_accession": "B2RUY7",
+      "residues_compared": 222,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P092488",
+      "external_accession": "C9JRZ8",
+      "residues_compared": 316,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P035546",
+      "external_accession": "D3W0D1",
+      "residues_compared": 207,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P102789",
+      "external_accession": "O00159",
+      "residues_compared": 1063,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P055965",
+      "external_accession": "O00237",
+      "residues_compared": 685,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P053391",
+      "external_accession": "O00291",
+      "residues_compared": 1037,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P063476",
+      "external_accession": "O00300",
+      "residues_compared": 401,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P092413",
+      "external_accession": "O00322",
+      "residues_compared": 258,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P090659",
+      "external_accession": "O00400",
+      "residues_compared": 549,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P082396",
+      "external_accession": "O00444",
+      "residues_compared": 970,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P091046",
+      "external_accession": "O00462",
+      "residues_compared": 879,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P035373",
+      "external_accession": "O00505",
+      "residues_compared": 521,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P080435",
+      "external_accession": "O00506",
+      "residues_compared": 426,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P100147",
+      "external_accession": "O00591",
+      "residues_compared": 440,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P031739",
+      "external_accession": "O00635",
+      "residues_compared": 465,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P051383",
+      "external_accession": "O14508",
+      "residues_compared": 198,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P107528",
+      "external_accession": "O14524",
+      "residues_compared": 444,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P057093",
+      "external_accession": "O14613",
+      "residues_compared": 210,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P021535",
+      "external_accession": "O14640",
+      "residues_compared": 695,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P009044",
+      "external_accession": "O14657",
+      "residues_compared": 336,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P072947",
+      "external_accession": "O14744",
+      "residues_compared": 637,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P041437",
+      "external_accession": "O14756",
+      "residues_compared": 317,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P111800",
+      "external_accession": "O14757",
+      "residues_compared": 476,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P055616",
+      "external_accession": "O14804",
+      "residues_compared": 337,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P059381",
+      "external_accession": "O14813",
+      "residues_compared": 284,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P057389",
+      "external_accession": "O14907",
+      "residues_compared": 124,
+      "covered_standard_residues": 19
+    },
+    {
+      "protein_id": "P062567",
+      "external_accession": "O14908",
+      "residues_compared": 333,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P018624",
+      "external_accession": "O14910",
+      "residues_compared": 233,
+      "covered_standard_residues": 19
+    },
+    {
+      "protein_id": "P028479",
+      "external_accession": "O14925",
+      "residues_compared": 209,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P021513",
+      "external_accession": "O14933",
+      "residues_compared": 153,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P055273",
+      "external_accession": "O14939",
+      "residues_compared": 933,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P074995",
+      "external_accession": "O14958",
+      "residues_compared": 399,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P020424",
+      "external_accession": "O14960",
+      "residues_compared": 151,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P068717",
+      "external_accession": "O14967",
+      "residues_compared": 610,
+      "covered_standard_residues": 20
+    },
+    {
+      "protein_id": "P092881",
+      "external_accession": "O14967",
+      "residues_compared": 610,
+      "covered_standard_residues": 20
+    }
+  ],
+  "labels_used": false,
+  "fit_ids_only": true,
+  "min_matches": 40,
+  "prefix_length": 80,
+  "full_sequences_verified": true,
+  "experiment_id": "AUDIT-20261007-197-residue-cipher",
+  "source_hashes": {
+    "data/train.csv": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+    "data/test.csv": "90cdde8f8a36871927fe83031242a5eadae2591d96fbfa5d7e87a5cf3d5605e3",
+    "data/submit_template_v1.csv": "4332c5f4e0e2cb3e9690ab86dd726e4a5f2d1f3d45940fbcb239e3a913e4d3a5",
+    "user_provided_submission_template": "4332c5f4e0e2cb3e9690ab86dd726e4a5f2d1f3d45940fbcb239e3a913e4d3a5",
+    "artifacts/runs/EXT-20261007-196-uniprot-applicability/reviewed-sample.tsv": "8b1a7e68d162e792dc57aeac495fa4360ac5de94ce78b051d8a4ed808fb01966",
+    "artifacts/runs/EXP-20261006-194-structural-scope-probe/protocol.npz": "ba28c38f5325758395a0799db9c1201e6cc4d9fd45be88ee6f591626e3e805b7"
+  },
+  "fit_id_sha256": "deae8602c0ac5b57c5b93044331e4f23f8e98680173b0d68abf0e26e7d027dca",
+  "changed_standard_characters": 19,
+  "unknown_standard_characters": 0,
+  "external_source": "UniProtKB reviewed search REST sample",
+  "primary_source_data": "artifacts/runs/EXT-20261007-196-uniprot-applicability/reviewed-sample.tsv",
+  "inference_uses_external_go": false,
+  "raw_csv_modified": false
+}

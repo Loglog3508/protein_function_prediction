@@ -1,0 +1,24 @@
+{
+  "experiment_id": "EXT-20261012-379-official-raw-augmented-training",
+  "official_archive": "protein_function_prediction_data_20260926.zip",
+  "train_member": "data/train.csv",
+  "test_member": "data/test.csv",
+  "template_member": "data/submit_template_v1.csv",
+  "residue_mapping": "artifacts/metrics/AUDIT-20261007-197-residue-cipher.json",
+  "external_path": "artifacts/runs/EXT-20261007-205-complete-swissprot/uniprot_sprot.dat.gz",
+  "ontology_path": "artifacts/runs/EXT-20261007-196-uniprot-applicability/go-basic.obo",
+  "output_dir": "artifacts/runs/EXT-20261012-379-official-raw-augmented-training",
+  "metrics_prefix": "artifacts/metrics/EXT-20261012-379-official-raw-augmented-training",
+  "expected_official_rows": 113796,
+  "expected_test_rows": 28450,
+  "expected_label_count": 500,
+  "expected_source_hashes": {
+    "protein_function_prediction_data_20260926.zip": "53242becbc600f8e933f88092c9505f7fbfd7d81f7c50a07672c5f40f8222816",
+    "data/train.csv": "84c221c99a7109e0a5b46f9a6ce65cd5f17f650d6cafe04f490647d3359d355f",
+    "data/test.csv": "90cdde8f8a36871927fe83031242a5eadae2591d96fbfa5d7e87a5cf3d5605e3",
+    "data/submit_template_v1.csv": "4332c5f4e0e2cb3e9690ab86dd726e4a5f2d1f3d45940fbcb239e3a913e4d3a5",
+    "artifacts/metrics/AUDIT-20261007-197-residue-cipher.json": "7cf3a9afe77b5604b8f16749a17126510d0cdbc05332a6a903e749ed9a64b3d8",
+    "artifacts/runs/EXT-20261007-205-complete-swissprot/uniprot_sprot.dat.gz": "c87208822a56e8ae0d6bf5072c287b35e42a8b9f25e8bd771389abc5b7a29c38",
+    "artifacts/runs/EXT-20261007-196-uniprot-applicability/go-basic.obo": "b08d45b268b8c24ccb2513dbbbc7d4df9f6521c099b413f79eb31e06e0fa3bcc"
+  }
+}
